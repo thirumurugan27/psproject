@@ -49,16 +49,18 @@ app.get("/user", (req, res) => {
 // POST route for login
 app.post("/user/login", (req, res) => {
   const { email, password } = req.body;
+  
   if (!email || !password) {
     return res.status(400).json({ message: "Please enter all fields" });
   }
 
   const sql = "SELECT * FROM userdetails WHERE email = ?";
-  db.query(sql, [email, password], (err, result) => {
+  db.query(sql, [email], (err, result) => {
     if (err) {
       console.error("Error logging in:", err);
       return res.status(500).json({ error: "Database error" });
     }
+    
     if (result.length === 0) {
       return res.status(404).json({ message: "User Not Found" });
     }
