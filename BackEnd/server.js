@@ -32,7 +32,6 @@ db.connect((err) => {
   console.log("Connected to MySQL database!");
 });
 
-
 // first get comment
 app.get("/user", (req, res) => {
   const sql = "SELECT * FROM userdetails";
@@ -44,7 +43,6 @@ app.get("/user", (req, res) => {
     res.status(200).json(results);
   });
 });
-
 
 // POST route for login
 app.post("/user/login", (req, res) => {
@@ -61,13 +59,13 @@ app.post("/user/login", (req, res) => {
       console.error("Error logging in:", err);
       return res.status(500).json({ error: "Database error" });
     }
-    
+
     if (result.length === 0) {
       return res.status(404).json({ message: "User Not Found" });
     }
     const user = result[0];
 
-    if(password !== user.password) {
+    if (password !== user.password) {
       return res.status(400).json({ message: "Incorrect Password" });
     }
 
@@ -79,9 +77,6 @@ app.post("/user/login", (req, res) => {
     });
   });
 });
-
-
-
 
 // // Route to handle form submission
 // app.post("/contact", (req, res) => {
@@ -109,7 +104,6 @@ app.post("/user/login", (req, res) => {
 //       res.status(200).json(results);
 //     });
 //   });
-
 
 //   // DELETE route for deleting contact form submission by id
 // app.delete("/contact/:id", (req, res) => {
