@@ -1,0 +1,107 @@
+*{
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+.outer{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+    background-color: #EEF1F9;
+    /* color:blue */
+
+}
+.loginbox{
+    
+    width:500px;
+    height:430px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.001);
+    border-radius: 10px;
+}
+.loginbox p{
+    align-self: center;
+}
+.header{
+    /* text-align: center; */
+    display: flex;
+    justify-content: center;
+    /* place-content: center; */
+    margin-top: 18px;
+}
+.header2{
+    display: flex;
+    font-family: "Segoe UI", sans-serif;
+    justify-content: center;
+    margin-top: 18px;
+
+}
+.inputbox
+{
+    font-family: 'Inter', sans-serif;
+    margin-left: 40px;
+    margin-top: 20px;
+}
+.inputbox p{
+    font-size:14px ;
+    height:21px ;
+    font-weight: 400;
+    margin-bottom: 0px;
+
+}
+.inputbox input{
+    width: 400px;
+    height: 38px;
+    border-radius: 5px;
+    border: 1px solid #ECEEF5;
+    padding-left: 10px;
+    margin-top: 2px;
+    margin-bottom: 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    margin-bottom: 25px;
+    background-color: #EEF1F9;
+    
+}
+.inputbox input:focus{
+    border-color: #7D53F6;
+    border-width: 2px;
+    outline: none;
+}
+.loginbtn{
+    width: 410px;
+    height: 42px;
+    margin-left: 40px;
+    border-radius: 5px;
+    border: 1px solid #ECEEF5;
+    margin-bottom: 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: white;
+    background-color:#7D53F6;
+}
+.footer{
+    display: flex;
+    justify-content: center;
+}
+.outgoogle
+{
+    display: flex;
+    justify-content: center;
+    
+}
+.google
+{
+    display: flex;
+    border: 2px solid #ECEEF5;
+    border-radius: 2px;
+    width:160px;
+    height: 35px;
+    background-color: white;
+    justify-content: center;
+    margin-top: 10px;
+}
