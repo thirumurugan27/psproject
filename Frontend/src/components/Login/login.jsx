@@ -5,7 +5,7 @@ import image from "../../assets/ps.png"
 import google from "../../assets/google.png"
 import "../Login/login.css"
 function Login() {
-const [username, setUsername] = useState("");
+const [email, setEmail] = useState("");
 const [password, setPassword] = useState("");
 const [error, setError] = useState(null);
 const navigate = useNavigate();
@@ -13,12 +13,12 @@ const navigate = useNavigate();
 const handlelogin = async (e) => {
 e.preventDefault();
 try {
-    const response = await axios.post("http://localhost:5000/user/login", {username,password});
+    const response = await axios.post("http://localhost:5000/user/login", {email,password});
 
     if (response.data) {
     console.log(response.data.role);
     const role = response.data.role
-    localStorage.setItem("role",role);
+    //localStorage.setItem("role",role);
     }
     else {
     setError("Invalid username or password");
@@ -31,7 +31,7 @@ try {
 };
 
 
-
+localStorage.setItem("role","faculty");
 return (
 <div className="outer">
     <div className="loginbox">
@@ -42,7 +42,7 @@ return (
         style={{ height: "45px", width: "40px" }}
         />
         <h3 style={{ fontWeight: 600, marginLeft: "10px", fontSize: "20px" ,color:"black" ,alignSelf:"center"}}>
-        PS Portal
+        PS Mentorship
         </h3>
     </div>
     <div className="header2">
@@ -55,8 +55,8 @@ return (
         <input
         type="text"
         placeholder="Enter your username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
         
         />
         <p style={{color:"black"}}>Password</p>
