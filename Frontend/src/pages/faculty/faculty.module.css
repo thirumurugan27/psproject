@@ -18,8 +18,9 @@
     border-radius: 20px;
     width:auto;  /*set to auto*/
     height: 150px;
-    margin:10px;
-
+    margin:12px;
+    flex-direction: row;
+    display: flex;
 }
 .button1
 {
