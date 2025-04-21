@@ -15,17 +15,17 @@ function AppLayout() {
             element: <Navigate to="/Login"/>
         },
         {
-            path: "/Login",
+            path: "/login",
             element: <Login/>
         },
         {
-            path: "/student",
+            path: "/login/student",
             element:<Protected_s>
                     <Student/>
                     </Protected_s>
         },
         {
-            path:"/faculty",
+            path:"/login/faculty",
             element:<Protected_f>
                     <Faculty/>
                     </Protected_f>

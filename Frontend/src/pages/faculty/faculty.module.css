@@ -1,0 +1,70 @@
+.mainBox{
+    background-color: #EEF1F9;
+    width: 100%;
+    height: 100vh;
+}
+.hero
+{
+    display: flex;
+    background-color: white;
+    height: 65px;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.card
+{
+    background-color: white;
+    border-radius: 20px;
+    width:auto;  /*set to auto*/
+    height: 150px;
+    margin:10px;
+
+}
+.button1
+{
+    width: 80px;
+    height: 35px;
+    border-radius: 10px;
+    color: white;
+    margin-right: 10px;
+    align-content: center;
+    justify-items: center;
+    background-color: red;
+}
+.button2
+{
+    width: 80px;
+    height: 35px;
+    border-radius: 10px;
+    color: white;
+    margin-right: 10px;
+    align-content: center;
+    justify-items: center;
+    background-color: green;
+}
+.button1:hover{
+    cursor: pointer;
+    background-color: rgba(228, 11, 11, 1);
+}
+.button2:hover{
+    cursor:pointer;
+    background-color: rgb(22, 112, 4);
+}
+.details
+{
+    display:flex;
+    flex-direction:column;
+    margin-top:10;
+    flex:2
+}
+.details *
+{
+    margin-top: 10px;
+}
+
+.cardsContainer
+{
+    display: grid;
+    grid-template-columns: repeat(3 , 1fr);
+}
