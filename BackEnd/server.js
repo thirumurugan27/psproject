@@ -49,11 +49,12 @@ app.get("/user", (req, res) => {
 // POST route for login
 app.post("/user/login", (req, res) => {
   const { email, password } = req.body;
-  
+
+  // Validate input
   if (!email || !password) {
     return res.status(400).json({ message: "Please enter all fields" });
   }
-
+  // Check if the email and password are in the DB
   const sql = "SELECT * FROM userdetails WHERE email = ?";
   db.query(sql, [email], (err, result) => {
     if (err) {
@@ -70,7 +71,6 @@ app.post("/user/login", (req, res) => {
       return res.status(400).json({ message: "Incorrect Password" });
     }
 
-   
     return res.status(200).json({
       message: "Login successful",
       role: user.role,
