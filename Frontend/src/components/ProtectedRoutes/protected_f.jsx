@@ -1,12 +1,13 @@
-import React, { Children } from 'react'
+import React from 'react'
 import { Navigate } from 'react-router-dom';
-function Protected_s({children}) {
-
+function Protected_f({children}) {
     const role = localStorage.getItem("role");
-    if (role === "student")
+    if (role === "faculty")
         return children
     else if (!role || role === "")
         return <Navigate to="/login"/>
+        
+return (children)
 }
 
-export default Protected_s
+export default Protected_f

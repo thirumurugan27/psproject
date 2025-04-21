@@ -64,7 +64,7 @@
     font-size: 14px;
     margin-bottom: 25px;
     background-color: #EEF1F9;
-    
+    color: black;
 }
 .inputbox input:focus{
     border-color: #7D53F6;

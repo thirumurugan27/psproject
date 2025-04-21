@@ -2,8 +2,8 @@ import React from 'react'
 
 function Student() {
     return (
-        <div>
-            
+        <div >
+            student
         </div>
     )
 }

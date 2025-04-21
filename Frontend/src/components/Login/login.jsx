@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import image from "../../assets/ps.png"
+import google from "../../assets/google.png"
 import "../Login/login.css"
 function Login() {
 const [username, setUsername] = useState("");
@@ -17,8 +18,9 @@ try {
     if (response.data) {
     console.log(response.data.role);
     const role = response.data.role
-    
-    } else {
+    localStorage.setItem("role",role);
+    }
+    else {
     setError("Invalid username or password");
     }
 } catch (error) {
@@ -28,7 +30,7 @@ try {
 }
 };
 
-localStorage.setItem("role",role);
+
 
 return (
 <div className="outer">
@@ -55,6 +57,7 @@ return (
         placeholder="Enter your username"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
+        
         />
         <p style={{color:"black"}}>Password</p>
         <input
@@ -84,7 +87,7 @@ return (
     <div className="outgoogle">
         <div className="google">
         <img
-            src="google.png"
+            src={google}
             alt="google"
             style={{ height: "20px", width: "20px",alignSelf:"center" }}
         />
