@@ -20,7 +20,8 @@ const db = mysql.createConnection({
   user: config.user,
   password: config.password,
   database: config.database,
-  dialect: config.dialect,
+ //port: config.port,
+
 });
 
 // Connect to MySQL
