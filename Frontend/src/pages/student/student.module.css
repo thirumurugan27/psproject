@@ -1,7 +1,8 @@
 .mainBox{
     background-color: #EEF1F9;
-    width: 100%;
+    width: 100vw;
     height: 100vh;
+
 }
 .hero
 {
@@ -11,4 +12,105 @@
     flex-direction: row;
     align-items: center;
     margin-bottom: 10px;
+}
+.options
+{
+    height: auto;
+    display: flex;
+    margin:40px;
+    margin-top:20px
+}
+.mentor
+{
+    height: auto;
+    width: auto;
+    padding: 10px;
+    background-color: #3F51B5;
+    color:white;
+    border-radius: 5px;
+}
+.mentee
+{
+background-color: #10B981;
+color:white;
+height: auto;
+width: auto;
+padding: 10px;
+border-radius: 5px;
+}
+
+.tableContainer {
+    max-width: 96vw;
+    border: 1px solid #dcdfe5;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: white;
+    margin: auto;
+}
+
+
+table {
+width: 100%;
+border-collapse: collapse;
+text-align: left;
+}
+
+th, td {
+padding: 16px 20px;
+border: 1px solid #dcdfe5;
+}
+
+th {
+font-weight: 600;
+color: #1a1a1a;
+background-color: #ffffff;
+}
+
+td {
+font-size: 16px;
+color: #333;
+}
+
+.statusBadge {
+display: inline-block;
+background-color: #fcd7a3;
+color: #1a1a1a;
+padding: 6px 12px;
+border-radius: 999px;
+font-weight: 500;
+margin-bottom: 6px;
+}
+
+.pending
+{
+    border-radius: 10px;
+    padding: 5px;
+    background-color: orange;
+    width: fit-content;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.active
+{
+    background-color: green;
+    color: white;
+    border-radius: 10px;
+    width: fit-content;
+    border-radius: 10px;
+    padding: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+
+}
+.expired
+{
+    background-color: red;
+    color:white;
+    border-radius: 10px;
+    width: fit-content;
+    border-radius: 10px;
+    padding: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
 }

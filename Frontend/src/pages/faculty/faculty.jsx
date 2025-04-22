@@ -4,12 +4,15 @@ import ps from "../../assets/ps.png"
 import userPS from "../../assets/userPS.png"
 import axios from "axios"
 import { useEffect } from 'react'
+import logout from "../../assets/logout.png"
+import {useNavigate} from "react-router-dom"
 function Faculty() {
     const [email,SetEmail] = useState("");
     const [course,SetCourse] = useState("");
     const [level,SetLevel] = useState("");
     const [error,setError] = useState("");
 
+    const navigate = useNavigate();
     useEffect(()=>{
         try{
             async function GetDetails()
@@ -37,8 +40,13 @@ function Faculty() {
     return (
         <div className={styles.mainBox}>
             <div className={styles.hero}>
+                <div style={{display:"flex",alignItems:"center"}}>
                 <img style={{width:45,height:45,display:"flex",margin:10}} src={ps}/>
                 <h4 style={{display:"flex"}}>PS Mentorship</h4>
+                </div>
+                <div style={{marginLeft:"auto",marginRight:30}} onClick={()=>navigate("/")}>
+                <img style={{width:25,height:25,margin:10,marginRight:"auto"}} src={logout}/>
+                </div>
             </div>
 
             {/* below is for map() */}
