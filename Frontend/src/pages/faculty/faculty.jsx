@@ -9,7 +9,7 @@ function Faculty() {
     const [course,SetCourse] = useState("");
     const [level,SetLevel] = useState("");
     const [error,setError] = useState("");
-    localStorage.clear();
+
     useEffect(()=>{
         try{
             async function GetDetails()

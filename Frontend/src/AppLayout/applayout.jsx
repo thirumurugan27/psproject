@@ -6,6 +6,7 @@ import Student from '../pages/student/student'
 import Faculty from '../pages/faculty/faculty'
 import Protected_s from '../components/ProtectedRoutes/protected'
 import Protected_f from '../components/ProtectedRoutes/protected_f'
+import UnAuthorized from '../pages/unauthorized/unautherized'
 
 function AppLayout() {
     
@@ -29,6 +30,10 @@ function AppLayout() {
             element:<Protected_f>
                     <Faculty/>
                     </Protected_f>
+        },
+        {
+            path:"login/unAuthorized",
+            element:<UnAuthorized/>
         }
     ])
     return (

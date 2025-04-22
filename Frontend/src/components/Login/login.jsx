@@ -31,7 +31,7 @@ try {
 };
 
 
-localStorage.setItem("role","faculty");
+localStorage.setItem("role","student")
 return (
 <div className="outer">
     <div className="loginbox">

@@ -6,7 +6,8 @@ function Protected_f({children}) {
         return children
     else if (!role || role === "")
         return <Navigate to="/login"/>
-        
+    else
+        return <Navigate to="/"/>
 return (children)
 }
 

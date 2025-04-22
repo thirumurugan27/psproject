@@ -7,6 +7,8 @@ function Protected_s({children}) {
         return children
     else if (!role || role === "")
         return <Navigate to="/login"/>
+    else
+        return <Navigate to="/"/>
 }
 
 export default Protected_s
