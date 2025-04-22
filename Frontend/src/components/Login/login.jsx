@@ -22,7 +22,7 @@ try {
     if (role === "student")
         navigate("/login/student")
     else if (role === "faculty")
-        navigate("/login/student")
+        navigate("/login/faculty")
     }
     else {
     setError("Invalid username or password");
