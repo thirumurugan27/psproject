@@ -1,5 +1,6 @@
 import React from 'react'
 import styles from "./student.module.css"
+import ps from "../../assets/ps.png"
 function Student() {
     return (
         <div className={styles.mainBox}>

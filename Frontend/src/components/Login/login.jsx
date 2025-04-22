@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import image from "../../assets/ps.png"
 import google from "../../assets/google.png"
 import "../Login/login.css"
@@ -18,7 +18,11 @@ try {
     if (response.data) {
     console.log(response.data.role);
     const role = response.data.role
-    //localStorage.setItem("role",role);
+    localStorage.setItem("role",role);
+    if (role === "student")
+        navigate("/login/student")
+    else if (role === "faculty")
+        navigate("/login/student")
     }
     else {
     setError("Invalid username or password");
@@ -31,7 +35,7 @@ try {
 };
 
 
-localStorage.setItem("role","student")
+// localStorage.setItem("role","student")
 return (
 <div className="outer">
     <div className="loginbox">
@@ -91,7 +95,7 @@ return (
             alt="google"
             style={{ height: "20px", width: "20px",alignSelf:"center" }}
         />
-        <p style={{ marginLeft: "5px", fontSize: "13px" ,alignSelf:"center",color:"black"}}>
+        <p style={{marginLeft: "5px", fontSize: "13px" ,alignSelf:"center",color:"black"}}>
             Sign in with Google
         </p>
         </div>
