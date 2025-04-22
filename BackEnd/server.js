@@ -20,8 +20,7 @@ const db = mysql.createConnection({
   user: config.user,
   password: config.password,
   database: config.database,
- //port: config.port,
-
+  //port: config.port,
 });
 
 // Connect to MySQL
@@ -75,85 +74,154 @@ app.post("/user/login", (req, res) => {
       role: user.role,
       name: user.name,
       email: user.email,
+      id: user.id,
     });
   });
 });
 
-// // Route to handle form submission
-// app.post("/contact", (req, res) => {
-//   const { name, email, phone, subject, message } = req.body;
+//language ggetting query
+app.get("/languages", (req, res) => {
+  const sql = "SELECT * FROM languages";
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Database error" });
+    }
+    res.status(200).json(results);
+  });
+});
 
-//   const sql = "INSERT INTO contact (name, email, phone, subject, message) VALUES (?, ?, ?, ?, ?)";
+// ✅ CHECK MENTOR ELIGIBILITY
+app.get("/mentor/eligible/:userId", (req, res) => {
+  const { userId } = req.params;
+  const sql = `
+    SELECT l.id as language_id, l.name, sl.level
+    FROM student_levels sl
+    JOIN languages l ON sl.language_id = l.id
+    WHERE sl.user_id = ? AND sl.level >= 3
+  `;
+  db.query(sql, [userId], (err, result) => {
+    if (err) return res.status(500).json({ message: "Database error" });
+    res.status(200).json(result); // languages user is eligible to mentor
+  });
+});
 
-//   db.query(sql, [name, email, phone, subject, message], (err, result) => {
-//     if (err) {
-//       console.error(err);
-//       return res.status(500).json({ message: "Database error" });
-//     }
-//     res.status(200).json(result);
-//   });
-// });
+// 📤 REQUEST TO BECOME A MENTOR
+app.post("/mentor/request", (req, res) => {
+  const { user_id, language_id } = req.body;
+  const sql = `INSERT INTO mentor_requests (user_id, language_id) VALUES (?, ?)`;
+  db.query(sql, [user_id, language_id], (err) => {
+    if (err) return res.status(500).json({ message: "Database error" });
+    res.status(200).json({ message: "Mentor request submitted" });
+  });
+});
 
-// Route to fetch all contact form submissions
-// app.get("/api/contact", (req, res) => {
-//     const sql = "SELECT * FROM contact_form";
-//     db.query(sql, (err, results) => {
-//       if (err) {
-//         console.error(err);
-//         return res.status(500).json({ message: "Database error" });
-//       }
-//       res.status(200).json(results);
-//     });
-//   });
+// 🧑‍🏫 FACULTY VIEW PENDING MENTOR REQUESTS
+app.get("/faculty/requests", (req, res) => {
+  const sql = `
+    SELECT mr.id, u.username, l.name AS language, sl.level
+    FROM mentor_requests mr
+    JOIN userdetails u ON mr.user_id = u.id
+    JOIN languages l ON mr.language_id = l.id
+    JOIN student_levels sl ON sl.user_id = mr.user_id AND sl.language_id = mr.language_id
+    WHERE mr.status = 'pending'
+  `;
+  db.query(sql, (err, results) => {
+    if (err) return res.status(500).json({ message: "Database error" });
+    res.status(200).json(results);
+  });
+});
 
-//   // DELETE route for deleting contact form submission by id
-// app.delete("/contact/:id", (req, res) => {
-//     const { id } = req.params;  // Get the contact ID from the URL parameter
-//     const sql = "DELETE FROM contact WHERE id = ?"; // Query to delete the record
+// ✅ FACULTY APPROVES MENTOR REQUEST
+app.put("/faculty/approve", (req, res) => {
+  const { request_id } = req.body;
+  const sql = `UPDATE mentor_requests SET status = 'approved' WHERE id = ?`;
+  db.query(sql, [request_id], (err) => {
+    if (err) return res.status(500).json({ message: "Database error" });
+    res.status(200).json({ message: "Request approved" });
+  });
+});
 
-//     db.query(sql, [id], (err, result) => {
-//       if (err) {
-//         console.error("Error deleting data:", err);
-//         return res.status(500).json({ message: "Database error" });
-//       }
+// 👀 STUDENTS SEE APPROVED MENTORS FOR A LANGUAGE
+app.get("/mentors/:languageId/:userLevel", (req, res) => {
+  const { languageId, userLevel } = req.params;
+  const sql = `
+    SELECT u.id, u.username, sl.level
+    FROM mentor_requests mr
+    JOIN userdetails u ON mr.user_id = u.id
+    JOIN student_levels sl ON sl.user_id = mr.user_id AND sl.language_id = mr.language_id
+    WHERE mr.status = 'approved' AND mr.language_id = ? AND sl.level >= ?
+  `;
+  db.query(sql, [languageId, parseInt(userLevel) + 2], (err, results) => {
+    if (err) return res.status(500).json({ message: "Database error" });
+    res.status(200).json(results);
+  });
+});
 
-//       if (result.affectedRows === 0) {
-//         // If no rows were affected, it means no record was found with the given ID
-//         return res.status(404).json({ message: "Record not found" });
-//       }
+// 🙋 STUDENT SELECTS MENTOR
+app.post("/mentor/select", (req, res) => {
+  const { mentor_id, mentee_id, language_id } = req.body;
 
-//       res.status(200).json({ message: "Record deleted successfully" });
-//     });
-//   });
+  // Calculate next Sunday and end date (Saturday)
+  const today = new Date();
+  const day = today.getDay();
+  const daysUntilSunday = (7 - day) % 7;
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() + daysUntilSunday);
+  const endDate = new Date(startDate);
+  endDate.setDate(startDate.getDate() + 6); // 7-day mentorship
 
-//   // PUT route to update a contact form submission by id
-// app.put("/contact/:id", (req, res) => {
-//     const { id } = req.params; // Get the contact ID from the URL parameter
-//     const { name, email, phone, subject, message } = req.body; // Get updated data from the request body
+  const formatDate = (d) => d.toISOString().split("T")[0];
 
-//     const sql = `
-//       UPDATE contact
-//       SET name = ?, email = ?, phone = ?, subject = ?, message = ?
-//       WHERE id = ?
-//     `;
+  // Check if mentor has 10 mentees already
+  const countQuery = `SELECT COUNT(*) AS count FROM mentorships WHERE mentor_id = ? AND language_id = ? AND status = 'ongoing'`;
+  db.query(countQuery, [mentor_id, language_id], (err, result) => {
+    if (err) return res.status(500).json({ message: "Database error" });
 
-//     db.query(sql, [name, email, phone, subject, message, id], (err, result) => {
-//       if (err) {
-//         console.error("Error updating data:", err);
-//         return res.status(500).json({ message: "Database error" });
-//       }
+    if (result[0].count >= 10) {
+      return res.status(400).json({ message: "Mentor already has 10 mentees" });
+    }
 
-//       if (result.affectedRows === 0) {
-//         // If no rows were affected, it means no record was found with the given ID
-//         return res.status(404).json({ message: "Record not found" });
-//       }
+    // Insert mentorship record
+    const insertQuery = `
+      INSERT INTO mentorships (mentor_id, mentee_id, language_id, start_date, end_date, status)
+      VALUES (?, ?, ?, ?, ?, 'ongoing')
+    `;
+    db.query(
+      insertQuery,
+      [
+        mentor_id,
+        mentee_id,
+        language_id,
+        formatDate(startDate),
+        formatDate(endDate),
+      ],
+      (err2) => {
+        if (err2) return res.status(500).json({ message: "Insert failed" });
+        res.status(200).json({ message: "Mentor assigned" });
+      }
+    );
+  });
+});
 
-//       res.status(200).json({ message: "Record updated successfully" });
-//     });
-//   });
+// 📃 MENTOR SEES MENTEE LIST
+app.get("/mentor/mentees/:mentorId", (req, res) => {
+  const { mentorId } = req.params;
+  const sql = `
+    SELECT u.username AS mentee_name, sl.level, l.name AS language, m.start_date, m.end_date, m.status
+    FROM mentorships m
+    JOIN userdetails u ON m.mentee_id = u.id
+    JOIN student_levels sl ON sl.user_id = u.id AND sl.language_id = m.language_id
+    JOIN languages l ON m.language_id = l.id
+    WHERE m.mentor_id = ?
+  `;
+  db.query(sql, [mentorId], (err, result) => {
+    if (err) return res.status(500).json({ message: "Database error" });
+    res.status(200).json(result);
+  });
+});
 
 // Start the server
-
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
