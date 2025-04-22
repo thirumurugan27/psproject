@@ -44,7 +44,7 @@ function Faculty() {
                 <img style={{width:45,height:45,display:"flex",margin:10}} src={ps}/>
                 <h4 style={{display:"flex"}}>PS Mentorship</h4>
                 </div>
-                <div style={{marginLeft:"auto",marginRight:30}} onClick={()=>navigate("/")}>
+                <div style={{marginLeft:"auto",marginRight:30}} className={styles.logout} onClick={()=>navigate("/")}>
                 <img style={{width:25,height:25,margin:10,marginRight:"auto"}} src={logout}/>
                 </div>
             </div>

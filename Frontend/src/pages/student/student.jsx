@@ -14,13 +14,13 @@ function Student() {
                 <img style={{width:45,height:45,display:"flex",margin:10}} src={ps}/>
                 <h4 style={{display:"flex"}}>PS Mentorship</h4>
                 </div>
-                <div style={{marginLeft:"auto",marginRight:30}} onClick={()=>navigate("/")}>
+                <div style={{marginLeft:"auto",marginRight:30}} className={styles.logout} onClick={()=>navigate("/")}>
                 <img style={{width:25,height:25,margin:10,marginRight:"auto"}} src={logout}/>
                 </div>
             </div>
 
             <div className={styles.options}>
-                <h4 style={{alignSelf:"center"}}>Apply for </h4>
+                <h3 style={{alignSelf:"center"}}>Apply for </h3>
                 <div style={{display:"flex",marginLeft:50}}>
                     <div className={styles.mentor}>Mentor</div>
                     <p style={{marginLeft:20,marginRight:20,fontSize:30}}>/</p>

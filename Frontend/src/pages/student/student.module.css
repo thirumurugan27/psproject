@@ -29,6 +29,10 @@
     color:white;
     border-radius: 5px;
 }
+.mentor:hover{
+    cursor: pointer;
+    background-color: #33418f;
+}
 .mentee
 {
 background-color: #10B981;
@@ -38,7 +42,10 @@ width: auto;
 padding: 10px;
 border-radius: 5px;
 }
-
+.mentee:hover{
+    cursor: pointer;
+    background-color: #0f9367;
+}
 .tableContainer {
     max-width: 96vw;
     border: 1px solid #dcdfe5;
@@ -103,6 +110,7 @@ margin-bottom: 6px;
     padding-right: 10px;
 
 }
+
 .expired
 {
     background-color: red;
@@ -113,4 +121,9 @@ margin-bottom: 6px;
     padding: 5px;
     padding-left: 10px;
     padding-right: 10px;
+}
+
+.logout:hover
+{
+    cursor: pointer;
 }
