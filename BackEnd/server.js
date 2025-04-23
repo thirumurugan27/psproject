@@ -79,7 +79,7 @@ app.post("/user/login", (req, res) => {
   });
 });
 
-//language ggetting query
+//language getting query
 app.get("/languages", (req, res) => {
   const sql = "SELECT * FROM languages";
   db.query(sql, (err, results) => {
