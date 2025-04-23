@@ -84,6 +84,10 @@
     color: white;
     background-color:#7D53F6;
 }
+.loginbtn:hover{
+    cursor: pointer;
+}
+
 .footer{
     display: flex;
     justify-content: center;

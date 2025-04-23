@@ -1,14 +1,96 @@
-import React from 'react'
+import React, { use, useState } from 'react'
 import styles from "./student.module.css"
 import ps from "../../assets/ps.png"
 import logout from "../../assets/logout.png"
 import {useNavigate} from "react-router-dom"
+
 function Student() {
-    const status = true;
+    const status = true; //change later
+    const [mentor, setMentor] = useState(false);
+    const [isPressed , setIsPressed] = useState(false);
+    const [slotName , setSlotName] = useState("");
+    const [slotNamePressed,setSlotNamePressed] = useState(false);
+    const [isEligible , setIsEligible] = useState(false);
+
+    const [mentee, setMentee] = useState(false);
+    const [isPressedMentee , setIsPressedMentee] = useState(false);
+    const [slotNameMentee , setSlotNameMentee] = useState("");
+    const [slotNamePressedMentee,setSlotNamePressedMentee] = useState(false);
     const navigate = useNavigate();
 
     return (
         <div className={styles.mainBox}>
+
+            {/* This is for mentor */}
+
+            {mentor && 
+            <div className={styles.overlay} onClick={(e) => {
+                if (e.target.classList.contains(styles.overlay)) {
+                    setMentor(false);
+            }}}>
+
+                <div className={styles.popup}>
+                    <div style={{padding:20 ,paddingBottom:10}}>
+                        <h3 style={{fontFamily:"inherit"}}>Book Slot</h3>
+                        <p style={{marginTop:20}}>Select a skill (mentors can guide up to 2 levels below their own).</p>
+                        <p style={{marginTop:10 ,fontSize:14}}>Eligible skills/levels</p>
+                    </div>
+                    <div style={{width:"100%",justifyItems:"center"}}>
+                        <div style={{width:"100%",alignItems:'center',justifyContent:"center",display:"flex",flexDirection:"column"}} onClick={()=>setIsPressed(!isPressed)}>
+                                <input readOnly value={slotNamePressed?slotName  : "select..."} className={styles.dropdown}/> 
+                                {
+                                    isPressed && 
+                                    <div className={styles.dropdownPressed}>
+                                        <div style={{width:"100%",textAlign:"center"}} onClick={()=>{setSlotName(slotName),setSlotNamePressed(!slotNamePressed)}}>
+                                            <p  style={{color:"gray"}}>{isEligible? slotName: "no options"}</p>
+                                        </div>            {/*map function*/}
+                                    </div>
+                                }
+                        </div>              
+                        <div className={styles.bookSlots} onClick={()=> setMentor(false)}>              {/*need to complete submit logic*/}
+                            <p>Apply Now</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            }
+
+            {/* This is for mentee */}
+
+            {mentee && 
+            
+            <div className={styles.overlay} onClick={(e) => {
+                if (e.target.classList.contains(styles.overlay)) {
+                    setMentee(false);
+            }}}>
+
+                <div className={styles.popup}>
+                    <div style={{padding:20 ,paddingBottom:10}}>
+                        <h3 style={{fontFamily:"inherit"}}>Book Slot</h3>
+                        <p style={{marginTop:20}}>You'll be paired with mentors who are at least 2 levels ahead of you.</p>
+                        <p style={{marginTop:10 ,fontSize:14}}>Book slot</p>
+                    </div>
+                    <div style={{width:"100%",justifyItems:"center"}}>
+                        <div style={{width:"100%",justifyContent:"center",alignItems:'center',display:"flex",flexDirection:"column"}} onClick={()=>setIsPressedMentee(!isPressedMentee)}>
+                                <input readOnly value={slotNamePressedMentee ? slotNameMentee  : "select..."} className={styles.dropdown}/> 
+                                {
+                                    isPressedMentee  && 
+                                    <div className={styles.dropdownPressed}>
+                                        <div style={{width:"100%",textAlign:"center"}} onClick={()=>{setSlotNameMentee(slotNameMentee),setSlotNamePressedMentee(!slotNamePressedMentee)}}>
+                                            <p  style={{color:"gray"}}>{slotNameMentee}</p>
+                                        </div>            {/*map function*/}
+                                    </div>
+                                }
+                        </div>              
+                        <div className={styles.bookSlots} onClick={()=> setMentee(false)}>              {/*need to complete submit logic*/}
+                            <p>Book Now</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            }
+
+
             <div className={styles.hero}>
                 <div style={{display:"flex",alignItems:"center"}}>
                 <img style={{width:45,height:45,display:"flex",margin:10}} src={ps}/>
@@ -22,9 +104,9 @@ function Student() {
             <div className={styles.options}>
                 <h3 style={{alignSelf:"center"}}>Apply for </h3>
                 <div style={{display:"flex",marginLeft:50}}>
-                    <div className={styles.mentor}>Mentor</div>
+                    <div className={styles.mentor} onClick={()=> setMentor(true)}>Mentor</div>
                     <p style={{marginLeft:20,marginRight:20,fontSize:30}}>/</p>
-                    <div className={styles.mentee}>Mentee</div>
+                    <div className={styles.mentee} onClick={()=> setMentee(true)}>Mentee</div>
                 </div>
             </div>
             <div className={styles.tableContainer}>
