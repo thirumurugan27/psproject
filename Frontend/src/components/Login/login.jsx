@@ -19,11 +19,11 @@ try {
     console.log(response.data.role);
 
     const role = response.data.role;
-    const id = response.data.id;
+    const student_id = response.data.id;
     const name = response.data.name;
 
     localStorage.setItem("role",role);
-    localStorage.setItem("id", id);
+    localStorage.setItem("student_id", student_id);
     localStorage.setItem("name", name);
 
     if (role === "student")
@@ -50,9 +50,9 @@ return (
         alt=""
         style={{ height: "45px", width: "40px" }}
         />
-        <h3 style={{ fontWeight: 600, marginLeft: "10px", fontSize: "20px" ,color:"black" ,alignSelf:"center"}}>
+        <h4 style={{ fontWeight: 600, marginLeft: "10px", fontSize: "18px" ,color:"black" ,alignSelf:"center"}}>
         PS Mentorship
-        </h3>
+        </h4>
     </div>
     <div className="header2">
         <h1 style={{ fontWeight: 600, color: "#8057F6", fontSize: 21, fontFamily: '"Segoe UI", sans-serif' }}>

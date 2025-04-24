@@ -1,0 +1,14 @@
+.mainBox{
+    background-color: #EEF1F9;
+    width: 100vw;
+    height: 100vh;
+}
+.hero
+{
+    display: flex;
+    background-color: white;
+    height: 65px;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 10px;
+}
