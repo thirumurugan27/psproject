@@ -69,6 +69,17 @@ app.get("/languages", (req, res) => {
     res.json(results);
   });
 });
+//Eligible levels of student
+app.get("/levels/:email", (req, res) => {
+  db.query(
+    "SELECT * FROM student_levels WHERE student_email = ? AND level > 2",
+    [req.params.email],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: "DB error" });
+      res.json(results);
+    }
+  );
+});
 
 // ---------------- MENTOR REQUEST & APPROVAL ------------------
 
