@@ -97,8 +97,6 @@ app.get("/mentorrequests", (req, res) => {
   });
 });
 
-
-
 app.post("/send-mentor-request", (req, res) => {
   const { student_email, language_name } = req.body;
 
@@ -123,39 +121,49 @@ app.post("/send-mentor-request", (req, res) => {
   );
 });
 
+app.put("/update-request-status", (req, res) => {
+  const { request_id, status } = req.body;
 
+  if (!request_id || !["approved", "rejected"].includes(status)) {
+    return res.status(400).json({ error: "Invalid request data" });
+  }
 
-app.post("/approve-request", (req, res) => {
-  const { request_id } = req.body;
+  // Step 1: Update the status of the request
+  const updateSql = "UPDATE mentor_requests SET status = ? WHERE id = ?";
+  db.query(updateSql, [status, request_id], (err, result) => {
+    if (err) return res.status(500).json({ error: "Database error" });
 
-  db.query(
-    "UPDATE mentor_requests SET status = 'approved' WHERE id = ?",
-    [request_id],
-    (err) => {
-      if (err) return res.status(500).json({ error: "DB error" });
-
-      db.query(
-        "SELECT student_email, language_name FROM mentor_requests WHERE id = ?",
-        [request_id],
-        (err2, result) => {
-          if (err2 || result.length === 0)
-            return res.status(400).json({ error: "Invalid request ID" });
-
-          const { student_email, language_name } = result[0];
-
-          db.query(
-            "INSERT INTO mentors (student_email, language_name, start_date) VALUES (?, ?, CURDATE())",
-            [student_email, language_name],
-            (err3) => {
-              if (err3)
-                return res.status(500).json({ error: "Insert mentor error" });
-              res.json({ message: "Mentor approved and added" });
-            }
-          );
-        }
-      );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Mentor request not found" });
     }
-  );
+
+    // If rejected, just respond back
+    if (status === "rejected") {
+      return res.json({ message: "Mentor request rejected successfully" });
+    }
+
+    // Step 2: If approved, insert into mentors table
+    const fetchSql =
+      "SELECT student_email, language_name FROM mentor_requests WHERE id = ?";
+    db.query(fetchSql, [request_id], (err2, results) => {
+      if (err2 || results.length === 0)
+        return res.status(400).json({ error: "Invalid request ID" });
+
+      const { student_email, language_name } = results[0];
+
+      const insertSql = `
+        INSERT INTO mentors (student_email, language_name, start_date)
+        VALUES (?, ?, CURDATE())
+      `;
+      db.query(insertSql, [student_email, language_name], (err3) => {
+        if (err3) {
+          console.error("Insert error:", err3);
+          return res.status(500).json({ error: "Insert mentor error" });
+        }
+        res.json({ message: "Mentor request approved and mentor added" });
+      });
+    });
+  });
 });
 
 // ---------------- STUDENT SELECT MENTOR ------------------
@@ -244,16 +252,15 @@ app.get("/menteeslist/:mentor_email/:language_name", (req, res) => {
   db.query(sql, [mentor_email, language_name], (err, results) => {
     if (err) {
       console.error("DB error:", err);
-      
+
       return res.status(500).json({ message: "Database error" });
     }
-     if (results.length === 0) {
-       return res.status(404).json({ message: "No mentees found" });
-     }
+    if (results.length === 0) {
+      return res.status(404).json({ message: "No mentees found" });
+    }
     res.status(200).json(results);
   });
 });
-
 
 app.get("/mentor-history/:email", (req, res) => {
   db.query(
