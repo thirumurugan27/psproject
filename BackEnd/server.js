@@ -72,7 +72,7 @@ app.get("/languages", (req, res) => {
 
 // ---------------- MENTOR REQUEST & APPROVAL ------------------
 
-app.get("/mentorrequests", (req, res) => {
+app.get("/mentorrequests", (req, res) => {          //this is in faculty page
   const sql = `
     SELECT 
       mr.id AS request_id,
@@ -97,7 +97,7 @@ app.get("/mentorrequests", (req, res) => {
   });
 });
 
-app.post("/send-mentor-request", (req, res) => {
+app.post("/send-mentor-request", (req, res) => {                     // student page  
   const { student_email, language_name } = req.body;
 
   db.query(
