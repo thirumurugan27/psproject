@@ -6,14 +6,15 @@ import Student from '../pages/student/student'
 import Faculty from '../pages/faculty/faculty'
 import Protected_s from '../components/ProtectedRoutes/protected'
 import Protected_f from '../components/ProtectedRoutes/protected_f'
-import UnAuthorized from '../pages/unauthorized/unautherized'
+import FileNotFound from '../pages/fileNotFound/fileNotFound'
 
 function AppLayout() {
     
     const router = createBrowserRouter([
         {
             path: "/",
-            element: <Navigate to="/Login"/>
+            element: <Navigate to="/Login"/>,
+            errorElement:<FileNotFound/>
         },
         {
             path: "/login",
@@ -32,8 +33,7 @@ function AppLayout() {
                     </Protected_f>
         },
         {
-            path:"login/unAuthorized",
-            element:<UnAuthorized/>
+            
         }
     ])
     return (

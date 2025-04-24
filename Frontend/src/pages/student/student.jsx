@@ -1,8 +1,9 @@
-import React, { use, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import styles from "./student.module.css"
 import ps from "../../assets/ps.png"
 import logout from "../../assets/logout.png"
 import {useNavigate} from "react-router-dom"
+import axios from 'axios'
 
 function Student() {
     const status = true; //change later
@@ -20,6 +21,29 @@ function Student() {
     const [isMentorAvailable, setIsMentorAvailable] = useState(false);
 
     const navigate = useNavigate();
+    const student_id = localStorage.getItem("student_id")
+    console.log("student_id: ",student_id)
+    useEffect(()=>{
+
+        async function GetEligibleSkill() {
+            
+            try{
+                const response = await axios.get(`http://localhost:5000/mentor/eligible/${student_id}`)
+                if (response.data)
+                    console.log(response.data)
+
+                else
+                    console.log("data empty");
+            }
+
+            catch(err)
+            {
+                if (err)
+                    console.error(err || "unexpected error occurred");
+            }
+        }
+        GetEligibleSkill();
+    },[]);
 
     function HandleSubmitMentor()
     {
@@ -137,7 +161,7 @@ function Student() {
                 <img style={{width:45,height:45,display:"flex",margin:10}} src={ps}/>
                 <h4 style={{display:"flex"}}>PS Mentorship</h4>
                 </div>
-                <div style={{marginLeft:"auto",marginRight:30}} className={styles.logout} onClick={()=>navigate("/")}>
+                <div style={{marginLeft:"auto",marginRight:30}} className={styles.logout} onClick={()=>{navigate("/") , localStorage.clear()}}>
                 <img style={{width:25,height:25,margin:10,marginRight:"auto"}} src={logout}/>
                 </div>
             </div>
