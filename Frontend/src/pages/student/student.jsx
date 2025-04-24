@@ -11,13 +11,46 @@ function Student() {
     const [slotName , setSlotName] = useState("");
     const [slotNamePressed,setSlotNamePressed] = useState(false);
     const [isEligible , setIsEligible] = useState(false);
+    const [isSlotAvailable , setIsSlotAvailable] = useState("");
 
     const [mentee, setMentee] = useState(false);
     const [isPressedMentee , setIsPressedMentee] = useState(false);
     const [slotNameMentee , setSlotNameMentee] = useState("");
     const [slotNamePressedMentee,setSlotNamePressedMentee] = useState(false);
+    const [isMentorAvailable, setIsMentorAvailable] = useState(false);
+
     const navigate = useNavigate();
 
+    function HandleSubmitMentor()
+    {
+        if(!slotNamePressed)
+            {
+                setIsSlotAvailable("Select a slot to continue")
+            }
+        else if (slotName.length === 0)
+        {
+            setIsSlotAvailable("No Slots available")
+        }
+        else{
+            setMentor(false)
+        }
+    }
+
+    function HandleSubmitMentee()
+    {
+        if(!slotNamePressed)
+            {
+                setIsSlotAvailable("Select a slot to continue")
+            }
+        else if (slotName.length === 0)
+        {
+            setIsSlotAvailable("No Slots available")
+        }
+        else{
+            setMentee(false)
+        }
+
+    }
     return (
         <div className={styles.mainBox}>
 
@@ -27,6 +60,7 @@ function Student() {
             <div className={styles.overlay} onClick={(e) => {
                 if (e.target.classList.contains(styles.overlay)) {
                     setMentor(false);
+                    setIsSlotAvailable("");
             }}}>
 
                 <div className={styles.popup}>
@@ -41,13 +75,16 @@ function Student() {
                                 {
                                     isPressed && 
                                     <div className={styles.dropdownPressed}>
-                                        <div style={{width:"100%",textAlign:"center"}} onClick={()=>{setSlotName(slotName),setSlotNamePressed(!slotNamePressed)}}>
+                                        <div style={{width:"100%",textAlign:"center"}} onClick={() => setSlotNamePressed(!slotNamePressed)}>         {/* this thing needs to be brought from backend */}
                                             <p  style={{color:"gray"}}>{isEligible? slotName: "no options"}</p>
                                         </div>            {/*map function*/}
                                     </div>
                                 }
-                        </div>              
-                        <div className={styles.bookSlots} onClick={()=> setMentor(false)}>              {/*need to complete submit logic*/}
+                        </div> 
+                                {
+                                    isSlotAvailable.length === 0? "": <p style={{color:"red"}}>{isSlotAvailable}</p>
+                                }
+                        <div className={styles.bookSlots} onClick={HandleSubmitMentor}>              {/*need to complete submit logic*/}
                             <p>Apply Now</p>
                         </div>
                     </div>
@@ -62,6 +99,7 @@ function Student() {
             <div className={styles.overlay} onClick={(e) => {
                 if (e.target.classList.contains(styles.overlay)) {
                     setMentee(false);
+                    setIsSlotAvailable("");
             }}}>
 
                 <div className={styles.popup}>
@@ -77,12 +115,15 @@ function Student() {
                                     isPressedMentee  && 
                                     <div className={styles.dropdownPressed}>
                                         <div style={{width:"100%",textAlign:"center"}} onClick={()=>{setSlotNameMentee(slotNameMentee),setSlotNamePressedMentee(!slotNamePressedMentee)}}>
-                                            <p  style={{color:"gray"}}>{slotNameMentee}</p>
+                                            <p  style={{color:"gray"}}>{isMentorAvailable? slotNameMentee : "no options"}</p>
                                         </div>            {/*map function*/}
                                     </div>
                                 }
-                        </div>              
-                        <div className={styles.bookSlots} onClick={()=> setMentee(false)}>              {/*need to complete submit logic*/}
+                        </div>  
+                                {
+                                    isSlotAvailable.length === 0? "": <p style={{color:"red"}}>{isSlotAvailable}</p>
+                                }            
+                        <div className={styles.bookSlots} onClick={HandleSubmitMentee}>              {/*need to complete submit logic*/}
                             <p>Book Now</p>
                         </div>
                     </div>

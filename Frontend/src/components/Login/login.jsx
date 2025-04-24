@@ -17,10 +17,17 @@ try {
 
     if (response.data) {
     console.log(response.data.role);
-    const role = response.data.role
+
+    const role = response.data.role;
+    const id = response.data.id;
+    const name = response.data.name;
+
     localStorage.setItem("role",role);
+    localStorage.setItem("id", id);
+    localStorage.setItem("name", name);
+
     if (role === "student")
-        navigate("/login/student")
+        navigate(`/login/student`)
     else if (role === "faculty")
         navigate("/login/faculty")
     }
@@ -34,8 +41,6 @@ try {
 }
 };
 
-
-// localStorage.setItem("role","student")
 return (
 <div className="outer">
     <div className="loginbox">
