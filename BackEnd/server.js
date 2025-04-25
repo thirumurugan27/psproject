@@ -189,6 +189,38 @@ app.put("/update-request-status", (req, res) => {
   });
 });
 
+
+app.get("/mentorrequests-details/:email", (req, res) => {
+  const student_email = req.params.email; // 🔥 FIXED
+
+  const sql = `
+    SELECT 
+      mr.id AS request_id,
+      u.name AS student_name,
+      u.email AS student_email,
+      mr.language_name,
+      sl.level,
+      mr.status,
+      DATE_FORMAT(mr.request_date, '%Y-%m-%d %H:%i:%s') AS requested_on
+    FROM mentor_requests mr
+    JOIN userdetails u ON u.email = mr.student_email
+    JOIN student_levels sl 
+      ON sl.student_email = mr.student_email 
+      AND sl.language_name = mr.language_name
+    WHERE mr.student_email = ?
+    ORDER BY mr.request_date DESC
+  `;
+
+  db.query(sql, [student_email], (err, results) => {
+    if (err) {
+      console.error("DB error:", err);
+      return res.status(500).json({ message: "Database error" });
+    }
+    res.status(200).json(results);
+  });
+});
+
+
 // ---------------- STUDENT SELECT MENTOR ------------------
 
 app.get("/approved-mentors/:student_email", (req, res) => {
