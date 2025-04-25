@@ -189,7 +189,6 @@ app.put("/update-request-status", (req, res) => {
   });
 });
 
-
 app.get("/mentorrequests-details/:email", (req, res) => {
   const student_email = req.params.email; // 🔥 FIXED
 
@@ -227,7 +226,6 @@ app.get("/mentorrequests-details/:email", (req, res) => {
     // "requested_on": "2025-04-24 04:57:03"
   });
 });
-
 
 // ---------------- STUDENT SELECT MENTOR ------------------
 
