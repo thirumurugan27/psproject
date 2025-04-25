@@ -69,6 +69,7 @@ app.get("/languages", (req, res) => {
     res.json(results);
   });
 });
+
 //Eligible levels of student
 app.get("/levels/:email", (req, res) => {
   db.query(
@@ -77,13 +78,16 @@ app.get("/levels/:email", (req, res) => {
     (err, results) => {
       if (err) return res.status(500).json({ error: "DB error" });
       res.json(results);
+      //returns
+      //language_name = results.language_name;
+      //level = results.level;
     }
   );
 });
 
 // ---------------- MENTOR REQUEST & APPROVAL ------------------
 
-app.get("/mentorrequests", (req, res) => {          //this is in faculty page
+app.get("/mentorrequests", (req, res) => {
   const sql = `
     SELECT 
       mr.id AS request_id,
@@ -105,42 +109,42 @@ app.get("/mentorrequests", (req, res) => {          //this is in faculty page
       return res.status(500).json({ message: "Database error" });
     }
     res.status(200).json(results);
+    // only pending requests are fetched
+    //"request_id": 5,
+    //"student_name": "student2",
+    //"student_email": "student2.al24@bitsathy.ac.in",
+    //"language_name": "C",
+    //"level": 4
   });
 });
 
-app.post("/send-mentor-request", (req, res) => {                     // student page  
+app.post("/send-mentor-request", (req, res) => {
   const { student_email, language_name } = req.body;
 
   db.query(
     "SELECT * FROM mentor_requests WHERE student_email = ? AND language_name = ?",
     [student_email, language_name],
     (err, result) => {
-      if (err) {
-        console.log(err)
-        return res.status(500).json({ error: "DB error" });
-      }
+      if (err) return res.status(500).json({ error: "DB error" });
 
-      if (result.length > 0){
-        console.log("request already sent")
+      if (result.length > 0)
         return res.status(200).json({ message: "Request already sent" });
-      }
 
       db.query(
         "INSERT INTO mentor_requests (student_email, language_name) VALUES (?, ?)",
         [student_email, language_name],
         (err2) => {
-          if (err2){ 
-            console.log(err2)
-            return res.status(500).json({ error: "Insert error" });}
-            res.json({ message: "Request submitted" });
-            console.log("request submitted")
+          if (err2) return res.status(500).json({ error: "Insert error" });
+          res.json({ message: "Request submitted" });
         }
       );
     }
   );
 });
 
+//faculty can approve or reject the request
 app.put("/update-request-status", (req, res) => {
+  //status = 'approved' or 'rejected'
   const { request_id, status } = req.body;
 
   if (!request_id || !["approved", "rejected"].includes(status)) {
@@ -187,7 +191,7 @@ app.put("/update-request-status", (req, res) => {
 
 // ---------------- STUDENT SELECT MENTOR ------------------
 
-app.get("/approved-mentors/:student_email", (req, res) => {             //for mentee's button (mentor availablity)
+app.get("/approved-mentors/:student_email", (req, res) => {
   const student_email = req.params.student_email;
 
   db.query(
@@ -219,6 +223,11 @@ app.get("/approved-mentors/:student_email", (req, res) => {             //for me
           });
 
           res.json(filtered);
+          //only available mentors (mentor level) > (mentee leve+2)
+          // "mentor_email": "student1.al24@bitsathy.ac.in",
+          // "mentor_name": "student1",
+          // "language_name": "C",
+          // "mentor_level": 3
         }
       );
     }
@@ -278,16 +287,26 @@ app.get("/menteeslist/:mentor_email/:language_name", (req, res) => {
       return res.status(404).json({ message: "No mentees found" });
     }
     res.status(200).json(results);
+
+    //"mentee_email": "student2.al24@bitsathy.ac.in",
+    // "mentee_name": "student2",
+    // "language_name": "C",
+    // "start_date": "2025-04-19T18:30:00.000Z",
+    // "end_date": "2025-04-25T18:30:00.000Z",
+    // "status": "ongoing"
   });
 });
 
 app.get("/mentor-history/:email", (req, res) => {
   db.query(
-    "SELECT * FROM mentors WHERE student_email = ?",
+    "SELECT * FROM mentors WHERE student_email = ?;",
     [req.params.email],
     (err, results) => {
       if (err) return res.status(500).json({ error: "DB error" });
       res.json(results);
+      //"student_email": "thirumurugank.al24@bitsathy.ac.in",
+      //"language_name": "C",
+      //"start_date": "2025-04-12T18:30:00.000Z"
     }
   );
 });
