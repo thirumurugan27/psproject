@@ -255,11 +255,14 @@ app.get("/approved-mentors/:student_email", (req, res) => {
           });
 
           res.json(filtered);
-          //only available mentors (mentor level) > (mentee leve+2)
-          // "mentor_email": "student1.al24@bitsathy.ac.in",
-          // "mentor_name": "student1",
-          // "language_name": "C",
-          // "mentor_level": 3
+          // returns
+        //   "request_id": 1,
+        // "student_name": "Thirumurugan K",
+        // "student_email": "thirumurugank.al24@bitsathy.ac.in",
+        // "language_name": "C",
+        // "level": 6,
+        // "status": "approved",
+        // "requested_on": "2025-04-24 04:57:03"
         }
       );
     }
