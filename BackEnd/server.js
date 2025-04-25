@@ -217,6 +217,14 @@ app.get("/mentorrequests-details/:email", (req, res) => {
       return res.status(500).json({ message: "Database error" });
     }
     res.status(200).json(results);
+    // returns
+    //   "request_id": 1,
+    // "student_name": "Thirumurugan K",
+    // "student_email": "thirumurugank.al24@bitsathy.ac.in",
+    // "language_name": "C",
+    // "level": 6,
+    // "status": "approved",
+    // "requested_on": "2025-04-24 04:57:03"
   });
 });
 
@@ -255,14 +263,11 @@ app.get("/approved-mentors/:student_email", (req, res) => {
           });
 
           res.json(filtered);
-          // returns
-        //   "request_id": 1,
-        // "student_name": "Thirumurugan K",
-        // "student_email": "thirumurugank.al24@bitsathy.ac.in",
-        // "language_name": "C",
-        // "level": 6,
-        // "status": "approved",
-        // "requested_on": "2025-04-24 04:57:03"
+          //only available mentors (mentor level) > (mentee leve+2)
+          // "mentor_email": "student1.al24@bitsathy.ac.in",
+          // "mentor_name": "student1",
+          // "language_name": "C",
+          // "mentor_level": 3
         }
       );
     }
