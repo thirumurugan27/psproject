@@ -17,9 +17,9 @@
     background-color: white;
     border-radius: 10px;
     width:auto;  /*set to auto*/
-    height: 150px;
+    height:auto;
     margin:12px;
-    flex-direction: row;
+    flex-direction: column;
     display: flex;
 }
 .button2

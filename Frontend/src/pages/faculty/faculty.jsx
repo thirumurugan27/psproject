@@ -10,21 +10,24 @@ function Faculty() {
     const [email,SetEmail] = useState("");
     const [course,SetCourse] = useState("");
     const [level,SetLevel] = useState("");
+    const [name,setName] = useState("");
     const [error,setError] = useState("");
-
+    const [data ,setData] = useState([]);
     const navigate = useNavigate();
     useEffect(()=>{
         try{
             async function GetDetails()
             {
-                const response = await axios.get(""); //update path
-                console.log("received in faculty component: ",email,course,level);  //check for logic
-                const email = response.data.email;
-                const course = response.data.course;
+                const response = await axios.get("http://localhost:5000/mentorrequests"); //update path
+                const email = response.data.student_email;
+                const course = response.data.language_name;
                 const level = response.data.level;
+                const name = response.data.student_name;
+                setData(response.data);
                 SetEmail(email);
                 SetLevel(level);
                 SetCourse(course);
+                setName(name);
             }
             GetDetails()
         }
@@ -67,13 +70,92 @@ function Faculty() {
                             </div>
                         </div>
                         </div>
-                        <div style={{display:"flex",flexDirection:"row",alignItems:"center",flex:3}}>
+                        <div style={{display:"flex",flexDirection:"row",alignSelf:"center",alignItems:"center",flex:3,marginBottom:10}}>
                             <div  className={styles.button1} ><p>Approve</p></div>
                             <div className={styles.button2} ><p>Reject</p></div>
                         </div>
                     </div>
                     
-                    
+                    <div className={styles.card}>
+                        <div style={{flexDirection:"row",display:"flex",flex:5}}>
+                        <div style={{display:"flex" , flexDirection:"row",flex:1,margin:5}}>
+                            <div style={{display:"flex",flex:1}}>
+                                <img src={userPS} style={{width:95,height:95, margin:10}}/>
+                            </div>
+                            <div className={styles.details}>
+                                <div style={{marginTop:15,width:"auto"}}>
+                                    <h3>userName</h3>
+                                    <p style={{fontSize:13}}>Mentorship applied for</p>
+                                    <h4>name of the course</h4>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                        <div style={{display:"flex",flexDirection:"row",alignSelf:"center",alignItems:"center",flex:3,marginBottom:10}}>
+                            <div  className={styles.button1} ><p>Approve</p></div>
+                            <div className={styles.button2} ><p>Reject</p></div>
+                        </div>
+                    </div>
+                    <div className={styles.card}>
+                        <div style={{flexDirection:"row",display:"flex",flex:5}}>
+                        <div style={{display:"flex" , flexDirection:"row",flex:1,margin:5}}>
+                            <div style={{display:"flex",flex:1}}>
+                                <img src={userPS} style={{width:95,height:95, margin:10}}/>
+                            </div>
+                            <div className={styles.details}>
+                                <div style={{marginTop:15,width:"auto"}}>
+                                    <h3>userName</h3>
+                                    <p style={{fontSize:13}}>Mentorship applied for</p>
+                                    <h4>name of the course</h4>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                        <div style={{display:"flex",flexDirection:"row",alignSelf:"center",alignItems:"center",flex:3,marginBottom:10}}>
+                            <div  className={styles.button1} ><p>Approve</p></div>
+                            <div className={styles.button2} ><p>Reject</p></div>
+                        </div>
+                    </div>
+                    <div className={styles.card}>
+                        <div style={{flexDirection:"row",display:"flex",flex:5}}>
+                        <div style={{display:"flex" , flexDirection:"row",flex:1,margin:5}}>
+                            <div style={{display:"flex",flex:1}}>
+                                <img src={userPS} style={{width:95,height:95, margin:10}}/>
+                            </div>
+                            <div className={styles.details}>
+                                <div style={{marginTop:15,width:"auto"}}>
+                                    <h3>userName</h3>
+                                    <p style={{fontSize:13}}>Mentorship applied for</p>
+                                    <h4>name of the course</h4>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                        <div style={{display:"flex",flexDirection:"row",alignSelf:"center",alignItems:"center",flex:3,marginBottom:10}}>
+                            <div  className={styles.button1} ><p>Approve</p></div>
+                            <div className={styles.button2} ><p>Reject</p></div>
+                        </div>
+                    </div>
+                    <div className={styles.card}>
+                        <div style={{flexDirection:"row",display:"flex",flex:5}}>
+                        <div style={{display:"flex" , flexDirection:"row",flex:1,margin:5}}>
+                            <div style={{display:"flex",flex:1}}>
+                                <img src={userPS} style={{width:95,height:95, margin:10}}/>
+                            </div>
+                            <div className={styles.details}>
+                                <div style={{marginTop:15,width:"auto"}}>
+                                    <h3>userName</h3>
+                                    <p style={{fontSize:13}}>Mentorship applied for</p>
+                                    <h4>name of the course</h4>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                        <div style={{display:"flex",flexDirection:"row",alignSelf:"center",alignItems:"center",flex:3,marginBottom:10}}>
+                            <div  className={styles.button1} ><p>Approve</p></div>
+                            <div className={styles.button2} ><p>Reject</p></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

@@ -115,17 +115,25 @@ app.post("/send-mentor-request", (req, res) => {                     // student 
     "SELECT * FROM mentor_requests WHERE student_email = ? AND language_name = ?",
     [student_email, language_name],
     (err, result) => {
-      if (err) return res.status(500).json({ error: "DB error" });
+      if (err) {
+        console.log(err)
+        return res.status(500).json({ error: "DB error" });
+      }
 
-      if (result.length > 0)
-        return res.status(400).json({ message: "Request already sent" });
+      if (result.length > 0){
+        console.log("request already sent")
+        return res.status(200).json({ message: "Request already sent" });
+      }
 
       db.query(
         "INSERT INTO mentor_requests (student_email, language_name) VALUES (?, ?)",
         [student_email, language_name],
         (err2) => {
-          if (err2) return res.status(500).json({ error: "Insert error" });
-          res.json({ message: "Request submitted" });
+          if (err2){ 
+            console.log(err2)
+            return res.status(500).json({ error: "Insert error" });}
+            res.json({ message: "Request submitted" });
+            console.log("request submitted")
         }
       );
     }
@@ -179,7 +187,7 @@ app.put("/update-request-status", (req, res) => {
 
 // ---------------- STUDENT SELECT MENTOR ------------------
 
-app.get("/approved-mentors/:student_email", (req, res) => {
+app.get("/approved-mentors/:student_email", (req, res) => {             //for mentee's button (mentor availablity)
   const student_email = req.params.student_email;
 
   db.query(

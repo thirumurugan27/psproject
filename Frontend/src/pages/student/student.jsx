@@ -11,8 +11,9 @@ function Student() {
     const [isPressed , setIsPressed] = useState(false);
     const [slotName , setSlotName] = useState("");
     const [slotNamePressed,setSlotNamePressed] = useState(false);
-    const [isEligible , setIsEligible] = useState(false);
     const [isSlotAvailable , setIsSlotAvailable] = useState("");
+    const [requestSkill,setRequestSkill] = useState("");
+    const [requestLevel, setRequestLevel] = useState("");         {/* need to update this part*/}
 
     const [mentee, setMentee] = useState(false);
     const [isPressedMentee , setIsPressedMentee] = useState(false);
@@ -20,18 +21,19 @@ function Student() {
     const [slotNamePressedMentee,setSlotNamePressedMentee] = useState(false);
     const [isMentorAvailable, setIsMentorAvailable] = useState(false);
 
+    const [data,setData] = useState([])
     const navigate = useNavigate();
-    const student_id = localStorage.getItem("student_id")
-    console.log("student_id: ",student_id)
+    const email = localStorage.getItem("email")
     useEffect(()=>{
 
         async function GetEligibleSkill() {
             
             try{
-                const response = await axios.get(`http://localhost:5000/mentor/eligible/${student_id}`)
-                if (response.data)
-                    console.log(response.data)
-
+                const response = await axios.get(`http://localhost:5000/levels/${email}`)
+                if (response.data){
+                    console.log(response.data);
+                    setData(response.data);
+                }
                 else
                     console.log("data empty");
             }
@@ -39,14 +41,14 @@ function Student() {
             catch(err)
             {
                 if (err)
-                    console.error(err || "unexpected error occurred");
+                    console.error(err || "unexpected error occurred -GetEligibleSkill");
             }
         }
         GetEligibleSkill();
     },[]);
 
-    function HandleSubmitMentor()
-    {
+    async function MentorRequestSent() {
+        console.log("email:",email ,  " skill_name: ",requestSkill)
         if(!slotNamePressed)
             {
                 setIsSlotAvailable("Select a slot to continue")
@@ -56,9 +58,39 @@ function Student() {
             setIsSlotAvailable("No Slots available")
         }
         else{
-            setMentor(false)
+
+            try{
+                const response = await axios.post("http://localhost:5000/send-mentor-request" , {student_email:email ,language_name:requestSkill })
+                const data = response.data.message;
+                setIsSlotAvailable(data)
+                setData([])
+            }
+            catch (err)
+            {
+                if (err.response)
+                    console.error(err.response || "unexpected error -mentorRequestSent")
+            }
+            
         }
+        
+    
     }
+
+
+    // function HandleSubmitMentor()
+    // {
+    //     if(!slotNamePressed)
+    //         {
+    //             setIsSlotAvailable("Select a slot to continue")
+    //         }
+    //     else if (slotName.length === 0)
+    //     {
+    //         setIsSlotAvailable("No Slots available")
+    //     }
+    //     else{
+    //         setMentor(false);
+    //     }
+    // }
 
     function HandleSubmitMentee()
     {
@@ -95,20 +127,36 @@ function Student() {
                     </div>
                     <div style={{width:"100%",justifyItems:"center"}}>
                         <div style={{width:"100%",alignItems:'center',justifyContent:"center",display:"flex",flexDirection:"column"}} onClick={()=>setIsPressed(!isPressed)}>
-                                <input readOnly value={slotNamePressed?slotName  : "select..."} className={styles.dropdown}/> 
+                                <input readOnly value={slotName.length === 0 ?"select..."  : slotName} className={styles.dropdown}/> 
                                 {
                                     isPressed && 
                                     <div className={styles.dropdownPressed}>
-                                        <div style={{width:"100%",textAlign:"center"}} onClick={() => setSlotNamePressed(!slotNamePressed)}>         {/* this thing needs to be brought from backend */}
-                                            <p  style={{color:"gray"}}>{isEligible? slotName: "no options"}</p>
-                                        </div>            {/*map function*/}
+                                        {
+                                            
+                                            data.length === 0 ?
+                                            <div style={{width:"100%",textAlign:"center",color:"gray"}}>
+                                                <p style={{textAlign:"center", fontSize:15}}>No options</p>
+                                            </div> :
+                                            <div style={{display:"flex",width:"100%",flexDirection:"column",textAlign:"center"}} onClick={()=>setSlotNamePressed(true)}>
+                                                {data.map(({language_name , level} , id)=>( 
+                                                    <div key={id}>
+                                                <div style={{width:"100%",color:"gray",display:"flex",marginTop:10,marginBottom:10}} onClick={() => {setSlotName(`${language_name} level - ${level}`) , setRequestSkill(language_name), setRequestLevel(level)}}>         {/*slot name is added here*/}
+                                                        <p style={{fontSize:15}}>{language_name} level - {level}</p>
+                                                        
+                                                </div>
+                                                <hr style={{color:"lightgray"}}/>
+                                                </div>
+                                            )) }
+                                            </div>
+                                        }
                                     </div>
+                                    
                                 }
                         </div> 
                                 {
                                     isSlotAvailable.length === 0? "": <p style={{color:"red"}}>{isSlotAvailable}</p>
                                 }
-                        <div className={styles.bookSlots} onClick={HandleSubmitMentor}>              {/*need to complete submit logic*/}
+                        <div className={styles.bookSlots} onClick={()=> { MentorRequestSent() , setSlotNamePressed(false) }}>              {/*need to complete submit logic*/}
                             <p>Apply Now</p>
                         </div>
                     </div>
@@ -169,7 +217,7 @@ function Student() {
             <div className={styles.options}>
                 <h3 style={{alignSelf:"center"}}>Apply for </h3>
                 <div style={{display:"flex",marginLeft:50}}>
-                    <div className={styles.mentor} onClick={()=> setMentor(true)}>Mentor</div>
+                    <div className={styles.mentor} onClick={()=> {setMentor(true) ,setSlotName("")}}>Mentor</div>
                     <p style={{marginLeft:20,marginRight:20,fontSize:30}}>/</p>
                     <div className={styles.mentee} onClick={()=> setMentee(true)}>Mentee</div>
                 </div>

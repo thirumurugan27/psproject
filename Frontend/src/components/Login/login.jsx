@@ -21,11 +21,13 @@ try {
     const role = response.data.role;
     const student_id = response.data.id;
     const name = response.data.name;
+    const email = response.data.email;
 
     localStorage.setItem("role",role);
     localStorage.setItem("student_id", student_id);
     localStorage.setItem("name", name);
-
+    localStorage.setItem("email",email);
+    
     if (role === "student")
         navigate(`/login/student`)
     else if (role === "faculty")
