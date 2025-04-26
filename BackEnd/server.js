@@ -121,8 +121,8 @@ app.post("/send-mentor-request", (req, res) => {
 
       if (result.length > 0)
         return res.status(200).json({ message: "Request already sent" });
-
-      db.query(
+      else{
+        db.query(
         "INSERT INTO mentor_requests (student_email, language_name) VALUES (?, ?)",
         [student_email, language_name],
         (err2) => {
@@ -130,6 +130,7 @@ app.post("/send-mentor-request", (req, res) => {
           res.json({ message: "Request submitted" });
         }
       );
+      }
     }
   );
 });
