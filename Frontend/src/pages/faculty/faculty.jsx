@@ -7,67 +7,110 @@ import { useEffect } from 'react'
 import logout from "../../assets/logout.png"
 import {useNavigate} from "react-router-dom"
 function Faculty() {
-    const [email,SetEmail] = useState("");
-    const [course,SetCourse] = useState("");
-    const [level,SetLevel] = useState("");
+    const [email,setEmail] = useState("");
+    const [course,setCourse] = useState("");
+    const [level,setLevel] = useState("");
     const [name,setName] = useState("");
-    const [error,setError] = useState("");
+    const [status,setStatus] = useState("");
     const [data ,setData] = useState([]);
     const navigate = useNavigate();
-    useEffect(()=>{
-        try{
-            async function GetDetails()
-            {
-                const response = await axios.get("http://localhost:5000/mentorrequests"); //update path
-                const email = response.data.student_email;
-                const course = response.data.language_name;
-                const level = response.data.level;
-                const name = response.data.student_name;
-                console.log(response.data)
-                setData(response.data);
-                SetEmail(email);
-                SetLevel(level);
-                SetCourse(course);
-                setName(name);
-            }
-            GetDetails()
-        }
-        catch (err){
-            if(err)
-            {
-                console.error("500 Error from DataBase!!! "+err);
-                setError("something went wrong...")
-            }
-        }
-    },[])
 
+    async function GetDetails() {
+        try {
+            const response = await axios.get("http://localhost:5000/mentorrequests"); 
+            const email = response.data.student_email;
+            const course = response.data.language_name;
+            const level = response.data.level;
+            const name = response.data.student_name;
+            console.log(response.data);
+            setData(response.data);
+            setEmail(email);
+            setLevel(level);
+            setCourse(course);
+            setName(name);
+        } catch (err) {
+            console.error("500 Error from DataBase!!! " + err);
+            setError("something went wrong...");
+        }
+    }
+    
+    useEffect(() => {
+        GetDetails();
+    }, []);
+    
     async function HandleApprove(request_id) {
         const status = "approved";
         try {
-          const response = await axios.put("http://localhost:5000/update-request-status", { request_id, status });
-      
-          // ✅ Update local state
-          setData(prevData =>
-            prevData.map(item =>
-              item.request_id === request_id ? { ...item, status: "approved" } : item
-            )
-          );
+            const response = await axios.put("http://localhost:5000/update-request-status", { request_id, status });
+            setStatus(response.data.message);
+            GetDetails(); // ✅ Refresh after approval
         } catch (err) {
-          console.error(err || "DB error");
+            console.error(err || "DB error");
         }
-      }
-      
-    async function HandleReject(request_id)
-        {
-            const status  = "rejected";
-            try{
-                const response = await axios.put("http://localhost:5000/update-request-status" , {request_id , status:status})
-            }
-            catch(err)
-            {
-                console.error(err || "DB error")
-            }
+    }
+    
+    async function HandleReject(request_id) {
+        const status = "rejected";
+        try {
+            const response = await axios.put("http://localhost:5000/update-request-status", { request_id, status });
+            setStatus(response.data.message);
+            GetDetails(); // ✅ Refresh after rejection
+        } catch (err) {
+            console.error(err || "DB error");
         }
+    }
+    // useEffect(()=>{
+    //     try{
+    //         async function GetDetails()
+    //         {
+    //             const response = await axios.get("http://localhost:5000/mentorrequests"); 
+    //             const email = response.data.student_email;
+    //             const course = response.data.language_name;
+    //             const level = response.data.level;
+    //             const name = response.data.student_name;
+    //             console.log(response.data)
+    //             setData(response.data);
+    //             SetEmail(email);
+    //             SetLevel(level);
+    //             SetCourse(course);
+    //             setName(name);
+    //         }
+    //         GetDetails()
+    //     }
+    //     catch (err){
+    //         if(err)
+    //         {
+    //             console.error("500 Error from DataBase!!! "+err);
+    //             setError("something went wrong...")
+    //         }
+    //     }
+    // },[])
+
+    // async function HandleApprove(request_id) {
+    //     const status = "approved";
+    //     try {
+    //         const response = await axios.put("http://localhost:5000/update-request-status", { request_id, status });
+    //         setStatus(response.data.message);
+    //     } catch (err) {
+    //         console.error(err || "DB error");
+
+    //     }
+    //     GetDetails();
+    // }
+    
+    // async function HandleReject(request_id)
+    //     {
+    //         const status  = "rejected";
+    //         try{
+    //             const response = await axios.put("http://localhost:5000/update-request-status" , {request_id , status:status});
+    //             setStatus(response.data.message);
+    //         }
+    //         catch(err)
+    //         {
+    //             console.error(err || "DB error")
+    //         }
+    //         GetDetails();
+    //     }
 
     return (
         <div className={styles.mainBox}>
@@ -83,6 +126,7 @@ function Faculty() {
 
             {/* below is for map() */}
             <div>
+                <div style={{width:"100%",textAlign:"center"}}><p style={{color:status === "Mentor request rejected successfully"? "green":"red"}}>{status}</p></div>
                 <div className={styles.cardsContainer}>
                     {
                         data.length === 0 ? "" :
@@ -109,7 +153,7 @@ function Faculty() {
                             
                         </div>
                         ))
-}
+                    }
                     
                     
                 </div>

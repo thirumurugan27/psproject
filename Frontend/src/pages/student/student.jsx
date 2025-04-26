@@ -24,8 +24,9 @@ function Student() {
     const [data,setData] = useState([])
     const navigate = useNavigate();
     const email = localStorage.getItem("email")
-    useEffect(()=>{
 
+
+    useEffect(()=>{
         async function GetEligibleSkill() {
             
             try{
@@ -45,27 +46,64 @@ function Student() {
             }
         }
         GetEligibleSkill();
+    },[]);
 
-        async function Get_response_from_faculty() {
-            const response = await axios.get(`http://localhost:5000/mentorrequests-details/${email}`)
-            console.log("faculty's response: ",response.data);
+    //     async function Get_response_from_faculty() {
+    //         const response = await axios.get(`http://localhost:5000/mentorrequests-details/${email}`)
+    //         console.log("faculty's response: ",response.data);
 
-            if (response.data.status === "pending"){
-                setData([])                                            //need to write logic for pending icon (table)
-            }
-            else if (response.data.status === "approved"){
-                setData([])                                           //same goes for here
-            }
-            else if (response.data.status === "rejected")
-            {
-                setData(prevData => prevData.filter(item => !(item.language_name === response.data.language_name && item.level === response.data.level)))
-            }
-        }
-        Get_response_from_faculty();
-        },[]);
+    //         if (response.data.status === "pending"){
+    //             setData([])                                            //need to write logic for pending icon (table)
+    //         }
+    //         else if (response.data.status === "approved"){
+    //             setData([])                                           //same goes for here
+    //         }
+    //         else if (response.data.status === "rejected")
+    //         {
+    //             setData(prevData => prevData.filter(item => !(item.language_name === response.data.language_name && item.level === response.data.level)))
+    //         }
+    //     }
+        
+    // },[]);
 
+    // useEffect(() => {
+    //     async function fetchData() {
+    //         try {
+    //             // Fetch both eligible skills and mentor request status in parallel
+    //             const [skillsRes, mentorRes] = await Promise.all([
+    //                 axios.get(`http://localhost:5000/levels/${email}`),
+    //                 axios.get(`http://localhost:5000/mentorrequests-details/${email}`)
+    //             ]);
+    
+    //             const eligibleSkills = skillsRes.data;  // Full list of skills user can mentor
+    //             const mentorStatus = mentorRes.data[0].status;     // Current mentorship request status
+    //             console.log("faculty response: ",mentorRes.data[0].status)
+    //             if (!mentorStatus || mentorStatus.length === 0) {
+    //                 // User hasn’t sent any request yet
+    //                 setData(eligibleSkills);
+    //             } 
+    //             else if (mentorStatus.status === "pending" || mentorStatus.status === "accepted") {
+    //                 // Show "No options" if request is pending/accepted
+    //                 setData([]);
+    //             } 
+    //             else if (mentorStatus.status === "rejected") {
+    //                 // Show other skills except the one that got rejected
+    //                 const filtered = eligibleSkills.filter(item =>
+    //                     !(item.language_name === mentorStatus.language_name && item.level === mentorStatus.level)
+    //                 );
+    //                 setData(filtered);
+    //             }
+    
+    //         } catch (error) {
+    //             console.error("Error fetching mentorship data:", error);
+    //         }
+    //     }
+    
+    //     fetchData();
+    // }, []);
+    
     async function MentorRequestSent() {
-        console.log("email:",email ,  " skill_name: ",requestSkill)
+        console.log("Mentor-request-sent...","\n","email:",email ,"\n", "skill_name: ",requestSkill)
         if(!slotNamePressed)
             {
                 setIsSlotAvailable("Select a slot to continue")
@@ -170,7 +208,7 @@ function Student() {
                                 }
                         </div> 
                                 {
-                                    isSlotAvailable.length === 0? "": <p style={{color:"red"}}>{isSlotAvailable}</p>
+                                    isSlotAvailable.length === 0? "": <p style={{color:isSlotAvailable === "Request submitted" ? "green": "red"}}>{isSlotAvailable}</p>
                                 }
                         <div className={styles.bookSlots} onClick={()=> { MentorRequestSent() , setSlotNamePressed(false) }}>              {/*need to complete submit logic*/}
                             <p>Apply Now</p>
