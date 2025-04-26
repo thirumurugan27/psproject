@@ -25,8 +25,9 @@ function Student() {
     const [dataMentee ,setDataMentee] = useState([]);
 
     const navigate = useNavigate();
-    const email = localStorage.getItem("email")
-
+    const email = localStorage.getItem("email");
+    const name  = localStorage.getItem("name");
+    console.log("logged in as: ",name);
 
     useEffect(()=>{
         async function GetEligibleSkill() {
@@ -259,26 +260,29 @@ function Student() {
                     <thead>
                     <tr>
                         <th>Role</th>
-                        <th>Date</th>
+                        <th>name</th>
                         <th>Assigned Person(s)</th>
                         <th>Skill / Level</th>
+                        <th>Date</th>
                         <th>Status</th>
                     </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td>Mentor</td>
-                            <td>Apr 7 - Apr 13</td>
+                            <td>student1</td>
                             <td>student1.bitsathy.ac.in<br/>student2.bitsathy.ac.in<br/>student3.bitsathy.ac.in<br/>student4.bitsathy.ac.in</td>
                             <td>C level-5</td>
+                            <td>26-04-2025 to 03-05-2025</td>
                             <td><div className={styles.pending}>Pending</div></td>
                         </tr>
                         
                         <tr>
                             <td>Mentee</td>
-                            <td>Apr 7 - Apr 13</td>
+                            <td>student1</td>
                             <td>student7.bitsathy.ac.in</td>
                             <td>C level-2</td>
+                            <td>26-04-2025 to 03-05-2025</td>
                             <td>
                                 <div className={status ? styles.active : styles.expired}>{status ? <p>Active</p> : <p>Expired</p>}</div>
                             </td>
@@ -286,9 +290,10 @@ function Student() {
 
                         <tr>
                             <td>Mentee</td>
-                            <td>Apr 7 - Apr 13</td>
+                            <td>student1</td>
                             <td>student8.bitsathy.ac.in</td>
                             <td>Java level-1</td>
+                            <td>26-04-2025 to 03-05-2025</td>
                             <td>
                                 <div className={styles.expired}><p>Expired</p></div>
                             </td>
@@ -296,9 +301,10 @@ function Student() {
 
                         <tr>
                             <td>Mentor</td>
-                            <td>Apr 7 - Apr 13</td>
+                            <td>student1</td>
                             <td>student1.bitsathy.ac.in<br/>student2.bitsathy.ac.in<br/>student3.bitsathy.ac.in<br/>student4.bitsathy.ac.in</td>
                             <td>C level-5</td>
+                            <td>26-04-2025 to 03-05-2025</td>
                             <td><div className={styles.active}>Approved</div></td>
                         </tr>
                     </tbody>
