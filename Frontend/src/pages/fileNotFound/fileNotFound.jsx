@@ -2,7 +2,9 @@ import React from 'react'
 import styles from './fileNotFound.module.css';
 import ps from "../../assets/ps.png"
 import logout from "../../assets/logout.png"
+import { useNavigate } from 'react-router-dom';
 function FileNotFound() {
+    const navigate = useNavigate();
 return (
     <div className={styles.mainBox}>
                 <div className={styles.hero}>
