@@ -119,6 +119,34 @@ app.get("/levels/:email", (req, res) => {
 
 
 // ---------------- MENTOR REQUEST & APPROVAL ------------------
+
+//sending request to faculty(by student (mentor))
+app.post("/send-mentor-request", (req, res) => {
+  const { student_email, language_name } = req.body;
+
+  db.query(
+    "SELECT * FROM mentor_requests WHERE student_email = ? AND language_name = ?",
+    [student_email, language_name],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: "DB error" });
+
+      if (result.length > 0)
+        return res.status(200).json({ message: "Request already sent" });
+
+      db.query(
+        "INSERT INTO mentor_requests (student_email, language_name) VALUES (?, ?)",
+        [student_email, language_name],
+        (err2) => {
+          if (err2) return res.status(500).json({ error: "Insert error" });
+          res.json({ message: "Request submitted" });
+        }
+      );
+    }
+  );
+});
+
+
+
 //to show to faculty
 //to approve or reject the request
 app.get("/mentorrequests", (req, res) => {
@@ -152,29 +180,6 @@ app.get("/mentorrequests", (req, res) => {
   });
 });
 
-app.post("/send-mentor-request", (req, res) => {
-  const { student_email, language_name } = req.body;
-
-  db.query(
-    "SELECT * FROM mentor_requests WHERE student_email = ? AND language_name = ?",
-    [student_email, language_name],
-    (err, result) => {
-      if (err) return res.status(500).json({ error: "DB error" });
-
-      if (result.length > 0)
-        return res.status(200).json({ message: "Request already sent" });
-
-      db.query(
-        "INSERT INTO mentor_requests (student_email, language_name) VALUES (?, ?)",
-        [student_email, language_name],
-        (err2) => {
-          if (err2) return res.status(500).json({ error: "Insert error" });
-          res.json({ message: "Request submitted" });
-        }
-      );
-    }
-  );
-});
 
 //faculty can approve or reject the request
 app.put("/update-request-status", (req, res) => {
@@ -223,90 +228,120 @@ app.put("/update-request-status", (req, res) => {
   });
 });
 
-app.get("/mentorrequests-details/:email", (req, res) => {
-  const student_email = req.params.email; // 🔥 FIXED
+// app.get("/mentorrequests-details/:email", (req, res) => {
+//   const student_email = req.params.email; // 🔥 FIXED
 
-  const sql = `
-    SELECT 
-      mr.id AS request_id,
-      u.name AS student_name,
-      u.email AS student_email,
-      mr.language_name,
-      sl.level,
-      mr.status,
-      DATE_FORMAT(mr.request_date, '%Y-%m-%d %H:%i:%s') AS requested_on
-    FROM mentor_requests mr
-    JOIN userdetails u ON u.email = mr.student_email
-    JOIN student_levels sl 
-      ON sl.student_email = mr.student_email 
-      AND sl.language_name = mr.language_name
-    WHERE mr.student_email = ?
-    ORDER BY mr.request_date DESC
-  `;
-
-  db.query(sql, [student_email], (err, results) => {
-    if (err) {
-      console.error("DB error:", err);
-      return res.status(500).json({ message: "Database error" });
-    }
-    res.status(200).json(results);
-    // returns
-    // "request_id": 1,
-    // "student_name": "Thirumurugan K",
-    // "student_email": "thirumurugank.al24@bitsathy.ac.in",
-    // "language_name": "C",
-    // "level": 6,
-    // "status": "approved",
-    // "requested_on": "2025-04-24 04:57:03"
-  });
-});
+//   const sql = `
+//     SELECT 
+//       mr.id AS request_id,
+//       u.name AS student_name,
+//       u.email AS student_email,
+//       mr.language_name,
+//       sl.level,
+//       mr.status,
+//       DATE_FORMAT(mr.request_date, '%Y-%m-%d %H:%i:%s') AS requested_on
+//     FROM mentor_requests mr
+//     JOIN userdetails u ON u.email = mr.student_email
+//     JOIN student_levels sl 
+//       ON sl.student_email = mr.student_email 
+//       AND sl.language_name = mr.language_name
+//     WHERE mr.student_email = ?
+//     ORDER BY mr.request_date DESC
+//   `;
+//   db.query(sql, [student_email], (err, results) => {
+//     if (err) {
+//       console.error("DB error:", err);
+//       return res.status(500).json({ message: "Database error" });
+//     }
+//     res.status(200).json(results);
+//     // returns
+//     // "request_id": 1,
+//     // "student_name": "Thirumurugan K",
+//     // "student_email": "thirumurugank.al24@bitsathy.ac.in",
+//     // "language_name": "C",
+//     // "level": 6,
+//     // "status": "approved",
+//     // "requested_on": "2025-04-24 04:57:03"
+//   });
+// });
 
 
 // ---------------- STUDENT SELECT MENTOR ------------------
 
+
+//to show the list of mentors available for a student(in student page MENTEEE)
 app.get("/approved-mentors/:student_email", (req, res) => {
   const student_email = req.params.student_email;
 
+  // Step 1: Check if student is already a mentor, mentee, or has a pending mentor request
+  const blockSql = `
+    SELECT email FROM (
+      SELECT student_email AS email FROM mentors WHERE student_email = ?
+      UNION
+      SELECT mentee_email AS email FROM mentees WHERE mentee_email = ? AND status = 'ongoing'
+      UNION
+      SELECT student_email AS email FROM mentor_requests 
+      WHERE student_email = ? AND status = 'pending' AND DATEDIFF(CURDATE(), request_date) <= 6
+    ) AS blocked
+  `;
+
   db.query(
-    "SELECT * FROM student_levels WHERE student_email = ?",
-    [student_email],
-    (err1, levels) => {
-      if (err1) return res.status(500).json({ error: "Level fetch error" });
+    blockSql,
+    [student_email, student_email, student_email],
+    (err, blocked) => {
+      if (err) return res.status(500).json({ error: "Pre-check error" });
 
-      const studentLevels = {};
-      levels.forEach((row) => {
-        studentLevels[row.language_name] = row.level;
-      });
+      if (blocked.length > 0) {
+        return res.status(200).json([]); // Student is blocked from selecting mentors
+      }
 
+      // Step 2: Fetch student's levels
       db.query(
-        `SELECT m.student_email AS mentor_email, u.name AS mentor_name, m.language_name, sl.level AS mentor_level
-       FROM mentors m
-       JOIN userdetails u ON u.email = m.student_email
-       JOIN student_levels sl ON sl.student_email = m.student_email AND sl.language_name = m.language_name`,
-        (err2, mentors) => {
-          if (err2)
-            return res.status(500).json({ error: "Mentor fetch error" });
+        "SELECT * FROM student_levels WHERE student_email = ?",
+        [student_email],
+        (err1, levels) => {
+          if (err1) return res.status(500).json({ error: "Level fetch error" });
 
-          const filtered = mentors.filter((m) => {
-            const studentLevel = studentLevels[m.language_name] || 0;
-            return (
-              m.mentor_email !== student_email &&
-              m.mentor_level >= studentLevel + 2
-            );
+          const studentLevels = {};
+          levels.forEach((row) => {
+            studentLevels[row.language_name] = row.level;
           });
 
-          res.json(filtered);
-          //only available mentors (mentor level) > (mentee leve+2)
-          // "mentor_email": "student1.al24@bitsathy.ac.in",
-          // "mentor_name": "student1",
-          // "language_name": "C",
-          // "mentor_level": 3
+          // Step 3: Fetch approved mentors with their levels
+          const mentorSql = `
+          SELECT 
+            m.student_email AS mentor_email, 
+            u.name AS mentor_name, 
+            m.language_name, 
+            sl.level AS mentor_level
+          FROM mentors m
+          JOIN userdetails u ON u.email = m.student_email
+          JOIN student_levels sl ON sl.student_email = m.student_email 
+            AND sl.language_name = m.language_name
+        `;
+
+          db.query(mentorSql, (err2, mentors) => {
+            if (err2)
+              return res.status(500).json({ error: "Mentor fetch error" });
+
+            const filtered = mentors.filter((m) => {
+              const studentLevel = studentLevels[m.language_name] || 0;
+              return (
+                m.mentor_email !== student_email &&
+                m.mentor_level >= studentLevel + 2
+              );
+            });
+
+            res.json(filtered);
+          });
         }
       );
     }
   );
 });
 
+
+//Asigning mentee to mentor (mentee page) and posted the mentee detail in mentees table
 app.post("/assign-mentee", (req, res) => {
   const { mentor_email, mentee_email, language_name } = req.body;
 
@@ -334,6 +369,8 @@ app.post("/assign-mentee", (req, res) => {
 });
 
 // ---------------- MENTORSHIP HISTORY ------------------
+
+// To get the list of mentees assigned to a MENTOR(mentor page)
 app.get("/menteeslist/:mentor_email/:language_name", (req, res) => {
   const { mentor_email, language_name } = req.params;
 
@@ -361,12 +398,7 @@ app.get("/menteeslist/:mentor_email/:language_name", (req, res) => {
     }
     res.status(200).json(results);
 
-    //"mentee_email": "student2.al24@bitsathy.ac.in",
-    // "mentee_name": "student2",
-    // "language_name": "C",
-    // "start_date": "2025-04-19T18:30:00.000Z",
-    // "end_date": "2025-04-25T18:30:00.000Z",
-    // "status": "ongoing"
+    
   });
 });
 
