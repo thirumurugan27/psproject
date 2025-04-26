@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { use, useEffect, useState } from 'react'
 import styles from "./student.module.css"
 import ps from "../../assets/ps.png"
 import logout from "../../assets/logout.png"
@@ -19,9 +19,11 @@ function Student() {
     const [isPressedMentee , setIsPressedMentee] = useState(false);
     const [slotNameMentee , setSlotNameMentee] = useState("");
     const [slotNamePressedMentee,setSlotNamePressedMentee] = useState(false);
-    const [isMentorAvailable, setIsMentorAvailable] = useState(false);
+    const [mentor_email , set_mentor_email] = useState("");
 
-    const [data,setData] = useState([])
+    const [data,setData] = useState([]);
+    const [dataMentee ,setDataMentee] = useState([]);
+
     const navigate = useNavigate();
     const email = localStorage.getItem("email")
 
@@ -30,9 +32,9 @@ function Student() {
         async function GetEligibleSkill() {
             
             try{
-                const response = await axios.get(`http://localhost:5000/levels/${email}`)
+                const response = await axios.get(`http://localhost:5000/levels/${email}`);
                 if (response.data){
-                    console.log(response.data);
+                    console.log("mentor's list: ",response.data);
                     setData(response.data);
                 }
                 else
@@ -45,63 +47,26 @@ function Student() {
                     console.error(err || "unexpected error occurred -GetEligibleSkill");
             }
         }
+        async function GetEligibleSkillMentee() {
+            try{
+                const response = await axios.get(`http://localhost:5000/approved-mentors/${email}`);
+                if (response.data){
+                    console.log("mentee's list: ", response.data);
+                    setDataMentee(response.data);
+                }
+                else
+                    console.log("data empty");
+            }
+            catch (err){
+                console.error(err || "unexpected error occurred -GetEligibleSkillMentee")
+            }
+            
+        }
         GetEligibleSkill();
+        GetEligibleSkillMentee();
     },[]);
 
-    //     async function Get_response_from_faculty() {
-    //         const response = await axios.get(`http://localhost:5000/mentorrequests-details/${email}`)
-    //         console.log("faculty's response: ",response.data);
 
-    //         if (response.data.status === "pending"){
-    //             setData([])                                            //need to write logic for pending icon (table)
-    //         }
-    //         else if (response.data.status === "approved"){
-    //             setData([])                                           //same goes for here
-    //         }
-    //         else if (response.data.status === "rejected")
-    //         {
-    //             setData(prevData => prevData.filter(item => !(item.language_name === response.data.language_name && item.level === response.data.level)))
-    //         }
-    //     }
-        
-    // },[]);
-
-    // useEffect(() => {
-    //     async function fetchData() {
-    //         try {
-    //             // Fetch both eligible skills and mentor request status in parallel
-    //             const [skillsRes, mentorRes] = await Promise.all([
-    //                 axios.get(`http://localhost:5000/levels/${email}`),
-    //                 axios.get(`http://localhost:5000/mentorrequests-details/${email}`)
-    //             ]);
-    
-    //             const eligibleSkills = skillsRes.data;  // Full list of skills user can mentor
-    //             const mentorStatus = mentorRes.data[0].status;     // Current mentorship request status
-    //             console.log("faculty response: ",mentorRes.data[0].status)
-    //             if (!mentorStatus || mentorStatus.length === 0) {
-    //                 // User hasn’t sent any request yet
-    //                 setData(eligibleSkills);
-    //             } 
-    //             else if (mentorStatus.status === "pending" || mentorStatus.status === "accepted") {
-    //                 // Show "No options" if request is pending/accepted
-    //                 setData([]);
-    //             } 
-    //             else if (mentorStatus.status === "rejected") {
-    //                 // Show other skills except the one that got rejected
-    //                 const filtered = eligibleSkills.filter(item =>
-    //                     !(item.language_name === mentorStatus.language_name && item.level === mentorStatus.level)
-    //                 );
-    //                 setData(filtered);
-    //             }
-    
-    //         } catch (error) {
-    //             console.error("Error fetching mentorship data:", error);
-    //         }
-    //     }
-    
-    //     fetchData();
-    // }, []);
-    
     async function MentorRequestSent() {
         console.log("Mentor-request-sent...","\n","email:",email ,"\n", "skill_name: ",requestSkill)
         if(!slotNamePressed)
@@ -130,37 +95,32 @@ function Student() {
     
     }
 
-
-    // function HandleSubmitMentor()
-    // {
-    //     if(!slotNamePressed)
-    //         {
-    //             setIsSlotAvailable("Select a slot to continue")
-    //         }
-    //     else if (slotName.length === 0)
-    //     {
-    //         setIsSlotAvailable("No Slots available")
-    //     }
-    //     else{
-    //         setMentor(false);
-    //     }
-    // }
-
-    function HandleSubmitMentee()
+    async function MenteeAdded()
     {
-        if(!slotNamePressed)
+        if(!slotNamePressedMentee)
             {
                 setIsSlotAvailable("Select a slot to continue")
             }
-        else if (slotName.length === 0)
+        else if (slotNameMentee.length === 0)
         {
             setIsSlotAvailable("No Slots available")
         }
         else{
-            setMentee(false)
+            console.log("mentor:", mentor_email ,"mentee_email:",email,"language_name:",requestLevel)
+            try{
+                const response  = await axios.post("http://localhost:5000/assign-mentee" ,{mentor_email:mentor_email ,mentee_email:email ,language_name:requestSkill});
+                
+                console.log(response.data.message);
+                setIsSlotAvailable(response.data.message);
+            }
+            catch(err)
+            {
+                console.log(err || "received unexpected error!!!")
+            }
         }
 
     }
+
     return (
         <div className={styles.mainBox}>
 
@@ -171,6 +131,7 @@ function Student() {
                 if (e.target.classList.contains(styles.overlay)) {
                     setMentor(false);
                     setIsSlotAvailable("");
+                    setIsPressed(false);
             }}}>
 
                 <div className={styles.popup}>
@@ -226,6 +187,8 @@ function Student() {
                 if (e.target.classList.contains(styles.overlay)) {
                     setMentee(false);
                     setIsSlotAvailable("");
+                    setSlotNameMentee("");
+                    setIsPressedMentee(false);
             }}}>
 
                 <div className={styles.popup}>
@@ -236,20 +199,35 @@ function Student() {
                     </div>
                     <div style={{width:"100%",justifyItems:"center"}}>
                         <div style={{width:"100%",justifyContent:"center",alignItems:'center',display:"flex",flexDirection:"column"}} onClick={()=>setIsPressedMentee(!isPressedMentee)}>
-                                <input readOnly value={slotNamePressedMentee ? slotNameMentee  : "select..."} className={styles.dropdown}/> 
+                                <input readOnly value={slotNameMentee.length === 0 ? "select...":slotNameMentee } className={styles.dropdown}/> 
                                 {
                                     isPressedMentee  && 
                                     <div className={styles.dropdownPressed}>
-                                        <div style={{width:"100%",textAlign:"center"}} onClick={()=>{setSlotNameMentee(slotNameMentee),setSlotNamePressedMentee(!slotNamePressedMentee)}}>
-                                            <p  style={{color:"gray"}}>{isMentorAvailable? slotNameMentee : "no options"}</p>
-                                        </div>            {/*map function*/}
+                                        {
+                                            dataMentee.length === 0 ? 
+                                            <div style={{width:"100%",textAlign:"center",color:"gray"}}>
+                                                <p style={{textAlign:"center", fontSize:15}}>No options</p>
+                                            </div> :
+                                            
+                                            <div style={{display:"flex",width:"100%",flexDirection:"column",textAlign:"center"}} onClick={()=>setSlotNamePressedMentee(true)}>
+                                                    {dataMentee.map(({mentor_name,language_name , mentor_level, mentor_email} , id)=>( 
+                                                        <div key={id}>
+                                                    <div style={{width:"100%",color:"gray",display:"flex",marginTop:10,marginBottom:10}} onClick={() => {setSlotNameMentee(`${mentor_name} | ${mentor_email} | ${language_name} | level - ${mentor_level}`) , setRequestSkill(language_name), setRequestLevel(mentor_level),set_mentor_email(mentor_email)}}>         {/* setReqeust see it*/}
+                                                            <p style={{fontSize:15}}>{mentor_name} | {mentor_email} | {language_name} | level - {mentor_level}</p>
+                                                            
+                                                    </div>
+                                                    <hr style={{color:"lightgray"}}/>
+                                                    </div>
+                                                )) }
+                                            </div>
+                                        }        
                                     </div>
                                 }
                         </div>  
                                 {
-                                    isSlotAvailable.length === 0? "": <p style={{color:"red"}}>{isSlotAvailable}</p>
+                                    isSlotAvailable.length === 0? "": <p style={{color:isSlotAvailable === "Mentee assigned successfully"? "green": "red"}}>{isSlotAvailable}</p>
                                 }            
-                        <div className={styles.bookSlots} onClick={HandleSubmitMentee}>              {/*need to complete submit logic*/}
+                        <div className={styles.bookSlots} onClick={()=>{MenteeAdded() ,setSlotNamePressedMentee(false)}}>              {/*need to complete submit logic*/}
                             <p>Book Now</p>
                         </div>
                     </div>

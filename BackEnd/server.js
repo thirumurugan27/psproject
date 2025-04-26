@@ -265,7 +265,7 @@ app.get("/mentorrequests-details/:email", (req, res) => {
 // ---------------- STUDENT SELECT MENTOR ------------------
 // Get approved mentors for a student
 // This endpoint is used to fetch mentors for a student who is not already a mentor or mentee
-aapp.get("/approved-mentors/:student_email", (req, res) => {
+app.get("/approved-mentors/:student_email", (req, res) => {
   const student_email = req.params.student_email;
 
   // Check if student is already mentor or mentee
@@ -348,7 +348,7 @@ app.post("/assign-mentee", (req, res) => {
   const { mentor_email, mentee_email, language_name } = req.body;
 
   if (!mentor_email || !mentee_email || !language_name)
-    return res.status(400).json({ error: "All fields are required" });
+    return res.status(200).json({ message: "All fields are required" });
 
   const startDate = new Date();
   const endDate = new Date();
@@ -364,7 +364,7 @@ app.post("/assign-mentee", (req, res) => {
       endDate.toISOString().split("T")[0],
     ],
     (err) => {
-      if (err) return res.status(500).json({ error: "Insert mentee error" });
+      if (err) return res.status(500).json({ message: "Insert mentee error" });
       res.json({ message: "Mentee assigned successfully" });
     }
   );

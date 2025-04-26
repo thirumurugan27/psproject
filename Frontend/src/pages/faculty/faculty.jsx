@@ -43,7 +43,7 @@ function Faculty() {
         try {
             const response = await axios.put("http://localhost:5000/update-request-status", { request_id, status });
             setStatus(response.data.message);
-            GetDetails(); // ✅ Refresh after approval
+            GetDetails(); 
         } catch (err) {
             console.error(err || "DB error");
         }
@@ -54,63 +54,11 @@ function Faculty() {
         try {
             const response = await axios.put("http://localhost:5000/update-request-status", { request_id, status });
             setStatus(response.data.message);
-            GetDetails(); // ✅ Refresh after rejection
+            GetDetails(); 
         } catch (err) {
             console.error(err || "DB error");
         }
     }
-    // useEffect(()=>{
-    //     try{
-    //         async function GetDetails()
-    //         {
-    //             const response = await axios.get("http://localhost:5000/mentorrequests"); 
-    //             const email = response.data.student_email;
-    //             const course = response.data.language_name;
-    //             const level = response.data.level;
-    //             const name = response.data.student_name;
-    //             console.log(response.data)
-    //             setData(response.data);
-    //             SetEmail(email);
-    //             SetLevel(level);
-    //             SetCourse(course);
-    //             setName(name);
-    //         }
-    //         GetDetails()
-    //     }
-    //     catch (err){
-    //         if(err)
-    //         {
-    //             console.error("500 Error from DataBase!!! "+err);
-    //             setError("something went wrong...")
-    //         }
-    //     }
-    // },[])
-
-    // async function HandleApprove(request_id) {
-    //     const status = "approved";
-    //     try {
-    //         const response = await axios.put("http://localhost:5000/update-request-status", { request_id, status });
-    //         setStatus(response.data.message);
-    //     } catch (err) {
-    //         console.error(err || "DB error");
-
-    //     }
-    //     GetDetails();
-    // }
-    
-    // async function HandleReject(request_id)
-    //     {
-    //         const status  = "rejected";
-    //         try{
-    //             const response = await axios.put("http://localhost:5000/update-request-status" , {request_id , status:status});
-    //             setStatus(response.data.message);
-    //         }
-    //         catch(err)
-    //         {
-    //             console.error(err || "DB error")
-    //         }
-    //         GetDetails();
-    //     }
 
     return (
         <div className={styles.mainBox}>
