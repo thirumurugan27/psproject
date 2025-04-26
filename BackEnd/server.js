@@ -63,17 +63,43 @@ app.post("/user/login", (req, res) => {
 
 //Eligible levels of student
 app.get("/levels/:email", (req, res) => {
-  db.query(
-    "SELECT * FROM student_levels WHERE student_email = ? AND level > 2",
-    [req.params.email],
-    (err, results) => {
-      if (err) return res.status(500).json({ error: "DB error" });
-      res.json(results);
-      //returns
-      //language_name = results.language_name;
-      //level = results.level;
+  const email = req.params.email;
+
+  const checkSql = `
+    SELECT student_email AS email FROM mentors WHERE student_email = ?
+    UNION
+    SELECT mentee_email AS email FROM mentees WHERE mentee_email = ? AND status = 'ongoing'
+  `;
+
+  db.query(checkSql, [email, email], (err, existing) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    if (existing.length > 0) {
+      return res.status(200).json([]); // Student is busy as mentor or mentee
     }
-  );
+
+    const sql = `
+      SELECT sl.language_name, sl.level
+      FROM student_levels sl
+      WHERE sl.student_email = ?
+        AND sl.level > 2
+        AND sl.language_name NOT IN (
+          SELECT language_name
+          FROM mentor_requests
+          WHERE student_email = ?
+            AND (
+              (status IN ('pending', 'approved') AND DATEDIFF(CURDATE(), request_date) <= 6)
+              OR (status = 'rejected' AND DATEDIFF(CURDATE(), request_date) <= 6)
+            )
+        )
+    `;
+
+    db.query(sql, [email, email], (err2, results) => {
+      if (err2) return res.status(500).json({ error: "DB error" });
+
+      return res.status(200).json(results);
+    });
+  });
 });
 
 // ---------------- MENTOR REQUEST & APPROVAL ------------------
@@ -121,16 +147,15 @@ app.post("/send-mentor-request", (req, res) => {
 
       if (result.length > 0)
         return res.status(200).json({ message: "Request already sent" });
-      else {
-        db.query(
-          "INSERT INTO mentor_requests (student_email, language_name) VALUES (?, ?)",
-          [student_email, language_name],
-          (err2) => {
-            if (err2) return res.status(500).json({ error: "Insert error" });
-            res.json({ message: "Request submitted" });
-          }
-        );
-      }
+
+      db.query(
+        "INSERT INTO mentor_requests (student_email, language_name) VALUES (?, ?)",
+        [student_email, language_name],
+        (err2) => {
+          if (err2) return res.status(500).json({ error: "Insert error" });
+          res.json({ message: "Request submitted" });
+        }
+      );
     }
   );
 });
@@ -219,6 +244,7 @@ app.get("/mentorrequests-details/:email", (req, res) => {
     // "requested_on": "2025-04-24 04:57:03"
   });
 });
+
 
 // ---------------- STUDENT SELECT MENTOR ------------------
 
