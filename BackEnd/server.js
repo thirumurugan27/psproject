@@ -265,7 +265,7 @@ app.get("/mentorrequests-details/:email", (req, res) => {
 // ---------------- STUDENT SELECT MENTOR ------------------
 // Get approved mentors for a student
 // This endpoint is used to fetch mentors for a student who is not already a mentor or mentee
-aapp.get("/approved-mentors/:student_email", (req, res) => {
+app.get("/approved-mentors/:student_email", (req, res) => {
   const student_email = req.params.student_email;
 
   // Check if student is already mentor or mentee
