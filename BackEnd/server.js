@@ -121,15 +121,15 @@ app.post("/send-mentor-request", (req, res) => {
 
       if (result.length > 0)
         return res.status(200).json({ message: "Request already sent" });
-      else{
+      else {
         db.query(
-        "INSERT INTO mentor_requests (student_email, language_name) VALUES (?, ?)",
-        [student_email, language_name],
-        (err2) => {
-          if (err2) return res.status(500).json({ error: "Insert error" });
-          res.json({ message: "Request submitted" });
-        }
-      );
+          "INSERT INTO mentor_requests (student_email, language_name) VALUES (?, ?)",
+          [student_email, language_name],
+          (err2) => {
+            if (err2) return res.status(500).json({ error: "Insert error" });
+            res.json({ message: "Request submitted" });
+          }
+        );
       }
     }
   );
@@ -219,7 +219,6 @@ app.get("/mentorrequests-details/:email", (req, res) => {
     // "requested_on": "2025-04-24 04:57:03"
   });
 });
-
 
 // ---------------- STUDENT SELECT MENTOR ------------------
 
