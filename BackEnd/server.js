@@ -263,8 +263,9 @@ app.get("/mentorrequests-details/:email", (req, res) => {
 
 
 // ---------------- STUDENT SELECT MENTOR ------------------
-
-app.get("/approved-mentors/:student_email", (req, res) => {
+// Get approved mentors for a student
+// This endpoint is used to fetch mentors for a student who is not already a mentor or mentee
+aapp.get("/approved-mentors/:student_email", (req, res) => {
   const student_email = req.params.student_email;
 
   // Check if student is already mentor or mentee
@@ -315,16 +316,27 @@ app.get("/approved-mentors/:student_email", (req, res) => {
           if (err2)
             return res.status(500).json({ error: "Mentor fetch error" });
 
-          const filtered = mentors.filter((m) => {
-            const studentLevel = studentLevels[m.language_name] || 0;
-            return (
-              m.mentor_email !== student_email &&
-              m.mentor_level >= studentLevel + 2 &&
-              m.mentee_count < 10
-            );
-          });
+          const filtered = mentors
+            .filter((m) => {
+              const studentLevel = studentLevels[m.language_name] || 0;
+              return (
+                m.mentor_email !== student_email &&
+                m.mentor_level >= studentLevel + 2 &&
+                m.mentee_count < 10
+              );
+            })
+            .map((m) => ({
+              mentor_name: m.mentor_name,
+              language_name: m.language_name,
+              mentor_level: m.mentor_level,
+              mentor_email: m.mentor_email,
+            }));
 
           res.json(filtered);
+              //"mentor_name": "Student1",
+              // "language_name": "C",
+              // "mentor_level": 5,
+              // "mentor_email": "student1@example.com"
         });
       }
     );
