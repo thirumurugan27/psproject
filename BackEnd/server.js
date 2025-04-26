@@ -75,32 +75,48 @@ app.get("/levels/:email", (req, res) => {
     if (err) return res.status(500).json({ error: err.message });
 
     if (existing.length > 0) {
-      return res.status(200).json([]); // Student is busy as mentor or mentee
+      return res.status(200).json([]); // Already a mentor or mentee, no options
     }
 
-    const sql = `
-      SELECT sl.language_name, sl.level
-      FROM student_levels sl
-      WHERE sl.student_email = ?
-        AND sl.level > 2
-        AND sl.language_name NOT IN (
-          SELECT language_name
-          FROM mentor_requests
-          WHERE student_email = ?
-            AND (
-              (status IN ('pending', 'approved') AND DATEDIFF(CURDATE(), request_date) <= 6)
-              OR (status = 'rejected' AND DATEDIFF(CURDATE(), request_date) <= 6)
-            )
-        )
+    // Now check if pending or approved mentor request exists
+    const pendingSql = `
+      SELECT * FROM mentor_requests
+      WHERE student_email = ?
+        AND status IN ('pending', 'approved')
+        AND DATEDIFF(CURDATE(), request_date) <= 6
     `;
 
-    db.query(sql, [email, email], (err2, results) => {
+    db.query(pendingSql, [email], (err2, pendingRequests) => {
       if (err2) return res.status(500).json({ error: "DB error" });
 
-      return res.status(200).json(results);
+      if (pendingRequests.length > 0) {
+        return res.status(200).json([]); // Pending or approved request exists, block sending new requests
+      }
+
+      // Now show eligible languages
+      const sql = `
+        SELECT sl.language_name, sl.level
+        FROM student_levels sl
+        WHERE sl.student_email = ?
+          AND sl.level > 2
+          AND sl.language_name NOT IN (
+            SELECT language_name
+            FROM mentor_requests
+            WHERE student_email = ?
+              AND status = 'rejected'
+              AND DATEDIFF(CURDATE(), request_date) <= 6
+          )
+      `;
+
+      db.query(sql, [email, email], (err3, results) => {
+        if (err3) return res.status(500).json({ error: "DB error" });
+
+        return res.status(200).json(results);
+      });
     });
   });
 });
+
 
 // ---------------- MENTOR REQUEST & APPROVAL ------------------
 //to show to faculty
