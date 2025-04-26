@@ -61,15 +61,6 @@ app.post("/user/login", (req, res) => {
   );
 });
 
-// ---------------- FETCH LANGUAGES ------------------
-
-app.get("/languages", (req, res) => {
-  db.query("SELECT * FROM languages", (err, results) => {
-    if (err) return res.status(500).json({ message: "DB error" });
-    res.json(results);
-  });
-});
-
 //Eligible levels of student
 app.get("/levels/:email", (req, res) => {
   db.query(
@@ -86,7 +77,8 @@ app.get("/levels/:email", (req, res) => {
 });
 
 // ---------------- MENTOR REQUEST & APPROVAL ------------------
-
+//to show to faculty
+//to approve or reject the request
 app.get("/mentorrequests", (req, res) => {
   const sql = `
     SELECT 
@@ -217,7 +209,7 @@ app.get("/mentorrequests-details/:email", (req, res) => {
     }
     res.status(200).json(results);
     // returns
-    //   "request_id": 1,
+    // "request_id": 1,
     // "student_name": "Thirumurugan K",
     // "student_email": "thirumurugank.al24@bitsathy.ac.in",
     // "language_name": "C",
@@ -226,6 +218,7 @@ app.get("/mentorrequests-details/:email", (req, res) => {
     // "requested_on": "2025-04-24 04:57:03"
   });
 });
+
 
 // ---------------- STUDENT SELECT MENTOR ------------------
 
