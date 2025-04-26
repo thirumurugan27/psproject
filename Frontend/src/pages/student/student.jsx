@@ -45,7 +45,24 @@ function Student() {
             }
         }
         GetEligibleSkill();
-    },[]);
+
+        async function Get_response_from_faculty() {
+            const response = await axios.get(`http://localhost:5000/mentorrequests-details/${email}`)
+            console.log("faculty's response: ",response.data);
+
+            if (response.data.status === "pending"){
+                setData([])                                            //need to write logic for pending icon (table)
+            }
+            else if (response.data.status === "approved"){
+                setData([])                                           //same goes for here
+            }
+            else if (response.data.status === "rejected")
+            {
+                setData(prevData => prevData.filter(item => !(item.language_name === response.data.language_name && item.level === response.data.level)))
+            }
+        }
+        Get_response_from_faculty();
+        },[]);
 
     async function MentorRequestSent() {
         console.log("email:",email ,  " skill_name: ",requestSkill)
@@ -63,7 +80,6 @@ function Student() {
                 const response = await axios.post("http://localhost:5000/send-mentor-request" , {student_email:email ,language_name:requestSkill })
                 const data = response.data.message;
                 setIsSlotAvailable(data)
-                setData([])
             }
             catch (err)
             {

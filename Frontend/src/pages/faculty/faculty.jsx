@@ -41,19 +41,22 @@ function Faculty() {
         }
     },[])
 
-    async function HandleApprove(request_id)
-        {
-            const status = "approved";
-
-            try{
-                const response = await axios.put("http://localhost:5000/update-request-status" , {request_id , status:status})
-            }
-            catch(err)
-            {
-                console.error(err || "DB error")
-            }
-
+    async function HandleApprove(request_id) {
+        const status = "approved";
+        try {
+          const response = await axios.put("http://localhost:5000/update-request-status", { request_id, status });
+      
+          // ✅ Update local state
+          setData(prevData =>
+            prevData.map(item =>
+              item.request_id === request_id ? { ...item, status: "approved" } : item
+            )
+          );
+        } catch (err) {
+          console.error(err || "DB error");
         }
+      }
+      
     async function HandleReject(request_id)
         {
             const status  = "rejected";
