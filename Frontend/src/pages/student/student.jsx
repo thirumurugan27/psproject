@@ -6,15 +6,18 @@ import {useNavigate} from "react-router-dom"
 import axios from 'axios'
 
 function Student() {
-    const status = true; //change later
     const [mentor, setMentor] = useState(false);
     const [isPressed , setIsPressed] = useState(false);
     const [slotName , setSlotName] = useState("");
     const [slotNamePressed,setSlotNamePressed] = useState(false);
     const [isSlotAvailable , setIsSlotAvailable] = useState("");
     const [requestSkill,setRequestSkill] = useState("");
-    const [requestLevel, setRequestLevel] = useState("");         {/* need to update this part*/}
+    const [requestLevel, setRequestLevel] = useState("");       
     const [mentorSlotBox , setMentorSlotBox] = useState(true);
+    const [data_mentorSlot,setData_mentorSlot] = useState([]); //get data
+    const [startdate_mentor_SlotBox ,set_startdate_mentor_slotbox] = useState("");
+    const [enddate_mentor_SlotBox,set_enddate_mentor_Slotbox] = useState("");
+    const [status_mentor_slotbox ,set_status_mentor_slotbox] = useState("");
 
     const [mentee, setMentee] = useState(false);
     const [isPressedMentee , setIsPressedMentee] = useState(false);
@@ -22,6 +25,14 @@ function Student() {
     const [slotNamePressedMentee,setSlotNamePressedMentee] = useState(false);
     const [mentor_email , set_mentor_email] = useState("");
     const [menteeSlotBox , setMenteeSlotBox] = useState(false);
+
+    const [email_mentee_slotBox ,set_email_mentee_slotBox] = useState("");
+    const [name_mentee_slotBox ,set_name_mentee_slotBox] = useState("");
+    const [language_name_mentee_slotBox ,set_language_name_mentee_slotBox] = useState("");
+    const [level_mentee_slotBox, set_level_mentee_slotBox] = useState("");
+    const [startdate_mentee_SlotBox ,set_startdate_mentee_Slotbox] = useState("");
+    const [enddate_mentee_SlotBox ,set_enddate_mentee_Slotbox] = useState("");
+    const [status_mentee_slotBox ,set_status_mentee_Slotbox] = useState("");
 
     const [data,setData] = useState([]);
     const [dataMentee ,setDataMentee] = useState([]);
@@ -50,6 +61,7 @@ function Student() {
                     console.error(err || "unexpected error occurred -GetEligibleSkill");
             }
         }
+
         async function GetEligibleSkillMentee() {
             try{
                 const response = await axios.get(`http://localhost:5000/approved-mentors/${email}`);
@@ -69,7 +81,45 @@ function Student() {
         GetEligibleSkillMentee();
     },[]);
 
-
+    useEffect(()=>{
+        async function GetMenteeDetail_for_mentor() {
+            try{
+                const response = await axios.get(`http://localhost:5000/menteeslist/${email}`);  // i need to pass mentor's language_name
+                console.log("mentee detail for mentor: ",response.data);
+                if(response.data){
+                    setData_mentorSlot(response.data);
+                    set_startdate_mentor_slotbox(response.data[0].start_date);
+                    set_enddate_mentor_Slotbox(response.data[0].end_date);
+                    set_status_mentor_slotbox(response.data[0].status);
+                }
+            }
+            catch(err){
+                console.log(err);
+            }
+        }
+        async function GetMentorDetail_for_Mentee() {
+            try{
+                const response = await axios.get(`http://localhost:5000/mentee-history/${email}`);
+               
+                if (response.data){
+                    console.log("mentor detail for mentee: ",response.data[0]);
+                    set_name_mentee_slotBox(response.data[0].mentor_name);
+                    set_email_mentee_slotBox(response.data[0].mentor_email);
+                    set_startdate_mentee_Slotbox(response.data[0].start_date);
+                    set_enddate_mentee_Slotbox(response.data[0].end_date);
+                    set_language_name_mentee_slotBox(response.data[0].language_name);
+                    set_level_mentee_slotBox(response.data[0].mentor_level);
+                    set_status_mentee_Slotbox(response.data[0].status)
+                }
+            }
+            catch(err){
+                console.log(err)
+            }
+        }
+        GetMenteeDetail_for_mentor();
+        GetMentorDetail_for_Mentee();
+        },[]);
+    
     async function MentorRequestSent() {
         console.log("Mentor-request-sent...","\n","email:",email ,"\n", "skill_name: ",requestSkill)
         if(!slotNamePressed)
@@ -123,7 +173,6 @@ function Student() {
         }
 
     }
-
     return (
         <div className={styles.mainBox}>
 
@@ -174,7 +223,7 @@ function Student() {
                                 {
                                     isSlotAvailable.length === 0? "": <p style={{color:isSlotAvailable === "Request submitted" ? "green": "red"}}>{isSlotAvailable}</p>
                                 }
-                        <div className={styles.bookSlots} onClick={()=> { MentorRequestSent() , setSlotNamePressed(false) }}>              {/*need to complete submit logic*/}
+                        <div className={styles.bookSlots} onClick={()=> { MentorRequestSent() , setSlotNamePressed(false)}}>              {/*need to complete submit logic*/}
                             <p>Apply Now</p>
                         </div>
                     </div>
@@ -259,23 +308,25 @@ function Student() {
             </div>
 
             
-            {mentorSlotBox && 
+            { mentorSlotBox && 
                     <div style={{width:"100vw",justifyItems:"center",alignContents:"center",marginBottom:10}}>
                         <div className={styles.bookTop_btn} style={{borderRadius:8,padding:10,color:"white", backgroundColor:"#7D53F6"}} onClick={()=>{setMentor(true)}}>book a slot</div>
                     </div>}
 
-                {menteeSlotBox && 
+            {menteeSlotBox && 
                 <div style={{width:"100vw",justifyItems:"center",alignContents:"center",marginBottom:10}}>
                     <div className={styles.bookTop_btn} style={{borderRadius:8,padding:10,color:"white", backgroundColor:"#7D53F6"}} onClick={()=>{setMentee(true)}}>book a slot</div>
                 </div>}
 
             <div className={styles.slotContainer}>
-                {mentorSlotBox && 
+                {
+
+        status_mentor_slotbox && mentorSlotBox && 
                 <div className={styles.slotsBox}>
                     <div className={styles.slotBox_gap} style={{paddingTop:15}}>
                         <p style={{color:"#6E728F"}}>Mentor Name</p>
                         <div style={{paddingTop:5}}>
-                            <p>Gowtham J</p>
+                            <p>{name}</p>
                         </div>
                     </div>
                     <div className={styles.slotBox_gap}>
@@ -287,57 +338,65 @@ function Student() {
                     <div className={styles.slotBox_gap}>
                         <p style={{color:"#6E728F"}}>Mentorship Date</p>
                         <div style={{paddingTop:5}}>
-                        <p>27-04-2025 to 04-05-2025</p>
+                        <p>{startdate_mentor_SlotBox} to {enddate_mentor_SlotBox}</p>
                         </div>
                         
                     </div>
                     <div className={styles.slotBox_gap}>
                         <p style={{color:"#6E728F"}}>Mentee's details</p>
-                        <div style={{paddingTop:5}}>  {/* here only map function is coming */}
-                            <p>student1 | student1@bitsathy.ac.in | c level - 2</p>
-                        </div>
+                        {data_mentorSlot.map(({mentee_name ,mentee_email ,language_name ,mentee_level},id)=>(
+                            <div key={id} style={{paddingTop:5}}>  
+                                <p>{mentee_name} | {mentee_email} | {language_name} level - {mentee_level}</p>
+                            </div>
+                        ))}
+                        
                     </div>
                     <div className={styles.slotBox_gap}>
                         <p style={{color:"#6E728F"}}>status</p>
                         <div style={{paddingTop:5}}>
-                            <div className={styles.status_button} style={{marginBottom:10}}>pending</div> 
+                            <div className={styles.status_button} style={{marginBottom:10,backgroundColor:status_mentor_slotbox==="ongoing"?"green":"red"}}>{status_mentor_slotbox}</div> 
                         </div>
                     </div>
                 </div>}
-
-                {menteeSlotBox && 
+        
+        {
+            name_mentee_slotBox !== "" &&  menteeSlotBox &&  
+            
                 <div className={styles.slotsBox}>
                     <div className={styles.slotBox_gap} style={{paddingTop:15}}>
                         <p style={{color:"#6E728F"}}>mentor name</p>
                             <div style={{marginTop:5}}>
-                                <p>Gowtham J</p>
+                                <p>{name_mentee_slotBox}</p>
                             </div>
                     </div>
                     <div className={styles.slotBox_gap}>
                         <p style={{color:"#6E728F"}}>mentor email</p>
                             <div style={{marginTop:5}}>
-                                <p>gowthamj.al24@bitsathy.ac.in</p>
+                                <p>{email_mentee_slotBox}</p>
                             </div>
                     </div>
                     <div className={styles.slotBox_gap}>
                         <p style={{color:"#6E728F"}}>mentor skill</p>
                             <div style={{marginTop:5}}>
-                                <p>c level - 5</p>
+                                <p>{language_name_mentee_slotBox} level - {level_mentee_slotBox}</p>
                             </div>
                     </div>
                     <div className={styles.slotBox_gap}>
                         <p style={{color:"#6E728F"}}>mentorship date</p>
                             <div style={{marginTop:5}}>
-                                <p>27-04-2025 to 04-05-2025</p>
+                                <p>{startdate_mentee_SlotBox} to {enddate_mentee_SlotBox}</p>
                             </div>
                     </div>
                     <div className={styles.slotBox_gap} style={{paddingBottom:15}}>
                         <p style={{color:"#6E728F"}}>status</p>
                             <div style={{marginTop:5}}>
-                                <div className={styles.status_button} style={{backgroundColor:"green", color:"white"}}>ongoing</div>
+                                <div className={styles.status_button} style={{backgroundColor:status_mentee_slotBox === "ongoing"?"green":"red", color:"white"}}>{status_mentee_slotBox}</div>
                             </div>
                     </div>
-                </div>}
+                </div>
+                
+            }
+
             </div>
     </div>
         

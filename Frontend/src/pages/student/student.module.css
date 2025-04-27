@@ -107,6 +107,7 @@ color: #333;
     width: fit-content;
     padding-left: 10px;
     padding-right: 10px;
+    color: white;
 }
 .logout:hover
 {

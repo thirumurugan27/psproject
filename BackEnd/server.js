@@ -387,9 +387,8 @@ app.post("/assign-mentee", (req, res) => {
 
 // ---------------- MENTORSHIP HISTORY ------------------
 
-app.get("/menteeslist/:mentor_email/:language_name", (req, res) => {
-  const { mentor_email, language_name } = req.params;
-
+app.get("/menteeslist/:mentor_email", (req, res) => {
+  const { mentor_email } = req.params;
   const sql = `
     SELECT 
       m.mentee_email,
@@ -402,16 +401,18 @@ app.get("/menteeslist/:mentor_email/:language_name", (req, res) => {
     FROM mentees m
     JOIN userdetails u ON u.email = m.mentee_email
     JOIN student_levels sl ON sl.student_email = m.mentee_email AND sl.language_name = m.language_name
-    WHERE m.mentor_email = ? AND m.language_name = ?
+    WHERE m.mentor_email = ?
   `;
 
-  db.query(sql, [mentor_email, language_name], (err, results) => {
+  db.query(sql, [mentor_email], (err, results) => {
+
+    
     if (err) {
       console.error("DB error:", err);
       return res.status(500).json({ message: "Database error" });
     }
     if (results.length === 0) {
-      return res.status(404).json({ message: "No mentees found" });
+      return res.status(200).json({ message: "No mentees found" }); //naa tha -G
     }
 
     // Format start_date and end_date to dd-mm-yyyy
@@ -467,7 +468,7 @@ app.get("/mentee-history/:email", (req, res) => {
       return res.status(500).json({ error: "DB error" });
     }
     if (results.length === 0) {
-      return res.status(404).json({ message: "No mentee history found" });
+      return res.status(200).json({ message: "No mentee history found" });  //404 to 200
       // "mentor_email": "thirumurugank.al24@bitsathy.ac.in",
       // "mentor_name": "Thirumurugan K",
       // "language_name": "C",
