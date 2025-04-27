@@ -3,7 +3,6 @@ const mysql = require("mysql2");
 const cors = require("cors");
 const cron = require("node-cron");
 
-
 const config = require("./src/config/config.js").development;
 const app = express();
 const PORT = 5000;
@@ -119,7 +118,6 @@ app.get("/levels/:email", (req, res) => {
   });
 });
 
-
 // ---------------- MENTOR REQUEST & APPROVAL ------------------
 //to show to faculty
 //to approve or reject the request
@@ -198,7 +196,9 @@ app.put("/update-request-status", (req, res) => {
 
     // If rejected, just respond back
     if (status === "rejected") {
-      return res.status(200).json({ message: "Mentor request rejected successfully" }); //added status(200) -G
+      return res
+        .status(200)
+        .json({ message: "Mentor request rejected successfully" }); //added status(200) -G
     }
 
     // Step 2: If approved, insert into mentors table
@@ -219,7 +219,9 @@ app.put("/update-request-status", (req, res) => {
           console.error("Insert error:", err3);
           return res.status(500).json({ message: "Insert mentor error" });
         }
-        res.status(200).json({ message: "Mentor request approved and mentor added" });  //added status(200) -G
+        res
+          .status(200)
+          .json({ message: "Mentor request approved and mentor added" }); //added status(200) -G
       });
     });
   });
@@ -236,7 +238,7 @@ app.get("/mentorrequests-details/:email", (req, res) => {
       mr.language_name,
       sl.level,
       mr.status,
-      DATE_FORMAT(mr.request_date, '%Y-%m-%d %H:%i:%s') AS requested_on
+      DATE_FORMAT(mr.request_date, '%d-%m-%Y') AS requested_on
     FROM mentor_requests mr
     JOIN userdetails u ON u.email = mr.student_email
     JOIN student_levels sl 
@@ -262,7 +264,6 @@ app.get("/mentorrequests-details/:email", (req, res) => {
     // "requested_on": "2025-04-24 04:57:03"
   });
 });
-
 
 // ---------------- STUDENT SELECT MENTOR ------------------
 // Get approved mentors for a student
@@ -347,30 +348,39 @@ app.get("/approved-mentors/:student_email", (req, res) => {
   );
 });
 
-
-
 app.post("/assign-mentee", (req, res) => {
   const { mentor_email, mentee_email, language_name } = req.body;
 
   if (!mentor_email || !mentee_email || !language_name)
     return res.status(200).json({ message: "All fields are required" });
 
-  const startDate = new Date();
-  const endDate = new Date();
-  endDate.setDate(startDate.getDate() + 6);
-
+  // Fetch the mentor's start_date and end_date first
   db.query(
-    "INSERT INTO mentees (mentor_email, mentee_email, language_name, start_date, end_date, status) VALUES (?, ?, ?, ?, ?, 'ongoing')",
-    [
-      mentor_email,
-      mentee_email,
-      language_name,
-      startDate.toISOString().split("T")[0],
-      endDate.toISOString().split("T")[0],
-    ],
-    (err) => {
-      if (err) return res.status(500).json({ message: "Insert mentee error" });
-      res.json({ message: "Mentee assigned successfully" });
+    "SELECT start_date, end_date FROM mentors WHERE student_email = ? AND language_name = ? AND status = 'ongoing'",
+    [mentor_email, language_name],
+    (err, results) => {
+      if (err) {
+        return res.status(500).json({ message: "Error fetching mentor dates" });
+      }
+      if (results.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "Mentor not found or mentorship not ongoing" });
+      }
+
+      const { start_date, end_date } = results[0];
+
+      // Now insert the mentee with the mentor's dates
+      db.query(
+        "INSERT INTO mentees (mentor_email, mentee_email, language_name, start_date, end_date, status) VALUES (?, ?, ?, ?, ?, 'ongoing')",
+        [mentor_email, mentee_email, language_name, start_date, end_date],
+        (err) => {
+          if (err) {
+            return res.status(500).json({ message: "Insert mentee error" });
+          }
+          res.json({ message: "Mentee assigned successfully" });
+        }
+      );
     }
   );
 });
@@ -385,62 +395,107 @@ app.get("/menteeslist/:mentor_email/:language_name", (req, res) => {
       m.mentee_email,
       u.name AS mentee_name,
       m.language_name,
+      sl.level AS mentee_level,
       m.start_date,
       m.end_date,
       m.status
     FROM mentees m
     JOIN userdetails u ON u.email = m.mentee_email
+    JOIN student_levels sl ON sl.student_email = m.mentee_email AND sl.language_name = m.language_name
     WHERE m.mentor_email = ? AND m.language_name = ?
   `;
 
   db.query(sql, [mentor_email, language_name], (err, results) => {
     if (err) {
       console.error("DB error:", err);
-
       return res.status(500).json({ message: "Database error" });
     }
     if (results.length === 0) {
       return res.status(404).json({ message: "No mentees found" });
     }
-    res.status(200).json(results);
-    // returns
-    //mentees list
-    //  "mentee_email": "student10.al24@bitsathy.ac.in",
-    //  "mentee_name": "student10",
-    //  "language_name": "C",
-    //   "start_date": "2025-04-26T18:30:00.000Z",
-    //   "end_date": "2025-05-02T18:30:00.000Z",
-    //   "status": "ongoing"
 
-   
+    // Format start_date and end_date to dd-mm-yyyy
+    const formattedResults = results.map((mentee) => ({
+      ...mentee,
+      start_date: formatDate(mentee.start_date),
+      end_date: formatDate(mentee.end_date),
+    }));
+
+    res.status(200).json(formattedResults);
+
+    // "mentee_email": "student10.al24@bitsathy.ac.in",
+    //   "mentee_name": "student10",
+    //   "language_name": "C",
+    //   "mentee_level": 0,
+    //   "start_date": "27-04-2025",
+    //   "end_date": "03-05-2025",
+    //   "status": "ongoing"
   });
 });
 
-app.get("/mentor-history/:email", (req, res) => {
-  db.query(
-    "SELECT * FROM mentors WHERE student_email = ?;",
-    [req.params.email],
-    (err, results) => {
-      if (err) return res.status(500).json({ error: "DB error" });
-      res.json(results);
-      //"student_email": "thirumurugank.al24@bitsathy.ac.in",
-      //"language_name": "C",
-      //"start_date": "2025-04-12T18:30:00.000Z"
-    }
-  );
-});
+// Helper function for date formatting
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
+}
 
+//to get mentor details for mentee
 app.get("/mentee-history/:email", (req, res) => {
-  db.query(
-    "SELECT * FROM mentees WHERE mentee_email = ?",
-    [req.params.email],
-    (err, results) => {
-      if (err) return res.status(500).json({ error: "DB error" });
-      res.json(results);
+  const menteeEmail = req.params.email;
+
+  const sql = `
+    SELECT 
+      m.mentor_email,
+      u.name AS mentor_name,
+      m.language_name,
+      sl.level AS mentor_level,
+      m.start_date,
+      m.end_date,
+      m.status
+    FROM mentees m
+    JOIN userdetails u ON u.email = m.mentor_email
+    JOIN student_levels sl ON sl.student_email = m.mentor_email AND sl.language_name = m.language_name
+    WHERE m.mentee_email = ?
+  `;
+
+  db.query(sql, [menteeEmail], (err, results) => {
+    if (err) {
+      console.error("DB error:", err);
+      return res.status(500).json({ error: "DB error" });
     }
-  );
+    if (results.length === 0) {
+      return res.status(404).json({ message: "No mentee history found" });
+      // "mentor_email": "thirumurugank.al24@bitsathy.ac.in",
+      // "mentor_name": "Thirumurugan K",
+      // "language_name": "C",
+      // "mentor_level": 6,
+      // "start_date": "27-04-2025",
+      // "end_date": "03-05-2025",
+      // "status": "ongoing"
+    }
+
+    // Format start_date and end_date nicely
+    const formattedResults = results.map((record) => ({
+      ...record,
+      start_date: formatDate(record.start_date),
+      end_date: formatDate(record.end_date),
+    }));
+
+    res.json(formattedResults);
+  });
 });
 
+// Helper function for date formatting
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
+}
 
 // ---------------- SERVER START ------------------
 
@@ -488,5 +543,4 @@ cron.schedule("1 0 * * *", () => {
     if (err3) console.error("❌ Error expiring mentors:", err3);
     else console.log(`✅ Expired ${result3.affectedRows} mentors`);
   });
-
 });
