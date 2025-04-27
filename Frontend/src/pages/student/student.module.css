@@ -18,7 +18,8 @@
     height: auto;
     display: flex;
     margin:40px;
-    margin-top:20px
+    margin-top:20px;
+    margin-bottom: 0px;
 }
 .mentor
 {
@@ -46,7 +47,7 @@ border-radius: 5px;
     cursor: pointer;
     background-color: #0f9367;
 }
-.tableContainer {
+/* .tableContainer {
     max-width: 96vw;
     border: 1px solid #dcdfe5;
     border-radius: 12px;
@@ -76,19 +77,29 @@ background-color: #ffffff;
 td {
 font-size: 16px;
 color: #333;
+} */
+.slotContainer
+{
+    width: 100vw;
+    height:70vh;
+    justify-items: center;
+    align-content: center;
 }
+.slotsBox{
 
-.statusBadge {
-display: inline-block;
-background-color: #fcd7a3;
-color: #1a1a1a;
-padding: 6px 12px;
-border-radius: 999px;
-font-weight: 500;
-margin-bottom: 6px;
+    background-color: white;
+    border-radius: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+    height: auto;
+    width: 620px;
+
 }
-
-.pending
+.slotBox_gap{
+    padding-left:15px;
+    padding-top: 5px;
+    padding-bottom: 10px;
+}
+.status_button
 {
     border-radius: 10px;
     padding: 5px;
@@ -97,32 +108,6 @@ margin-bottom: 6px;
     padding-left: 10px;
     padding-right: 10px;
 }
-
-.active
-{
-    background-color: green;
-    color: white;
-    border-radius: 10px;
-    width: fit-content;
-    border-radius: 10px;
-    padding: 5px;
-    padding-left: 10px;
-    padding-right: 10px;
-
-}
-
-.expired
-{
-    background-color: red;
-    color:white;
-    border-radius: 10px;
-    width: fit-content;
-    border-radius: 10px;
-    padding: 5px;
-    padding-left: 10px;
-    padding-right: 10px;
-}
-
 .logout:hover
 {
     cursor: pointer;
@@ -202,3 +187,4 @@ margin-bottom: 6px;
 .bookSlots:hover{
     cursor: pointer;
 }
+

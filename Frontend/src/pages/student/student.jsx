@@ -14,12 +14,14 @@ function Student() {
     const [isSlotAvailable , setIsSlotAvailable] = useState("");
     const [requestSkill,setRequestSkill] = useState("");
     const [requestLevel, setRequestLevel] = useState("");         {/* need to update this part*/}
+    const [mentorSlotBox , setMentorSlotBox] = useState(true);
 
     const [mentee, setMentee] = useState(false);
     const [isPressedMentee , setIsPressedMentee] = useState(false);
     const [slotNameMentee , setSlotNameMentee] = useState("");
     const [slotNamePressedMentee,setSlotNamePressedMentee] = useState(false);
     const [mentor_email , set_mentor_email] = useState("");
+    const [menteeSlotBox , setMenteeSlotBox] = useState(false);
 
     const [data,setData] = useState([]);
     const [dataMentee ,setDataMentee] = useState([]);
@@ -250,67 +252,93 @@ function Student() {
             <div className={styles.options}>
                 <h3 style={{alignSelf:"center"}}>Apply for </h3>
                 <div style={{display:"flex",marginLeft:50}}>
-                    <div className={styles.mentor} onClick={()=> {setMentor(true) ,setSlotName("")}}>Mentor</div>
+                    <div className={styles.mentor} style={{backgroundColor:menteeSlotBox? "#252C6A":"#3F51B5"}} onClick={()=> {setMenteeSlotBox(false), setMentorSlotBox(true) ,setSlotName("")}}>Mentor</div>
                     <p style={{marginLeft:20,marginRight:20,fontSize:30}}>/</p>
-                    <div className={styles.mentee} onClick={()=> setMentee(true)}>Mentee</div>
+                    <div className={styles.mentee} style={{backgroundColor:mentorSlotBox? "#0A6247":"#10B981"}} onClick={()=> {setMenteeSlotBox(true) , setMentorSlotBox(false)}}>Mentee</div>
                 </div>
             </div>
-            <div className={styles.tableContainer}>
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Role</th>
-                        <th>name</th>
-                        <th>Assigned Person(s)</th>
-                        <th>Skill / Level</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Mentor</td>
-                            <td>student1</td>
-                            <td>student1.bitsathy.ac.in<br/>student2.bitsathy.ac.in<br/>student3.bitsathy.ac.in<br/>student4.bitsathy.ac.in</td>
-                            <td>C level-5</td>
-                            <td>26-04-2025 to 03-05-2025</td>
-                            <td><div className={styles.pending}>Pending</div></td>
-                        </tr>
-                        
-                        <tr>
-                            <td>Mentee</td>
-                            <td>student1</td>
-                            <td>student7.bitsathy.ac.in</td>
-                            <td>C level-2</td>
-                            <td>26-04-2025 to 03-05-2025</td>
-                            <td>
-                                <div className={status ? styles.active : styles.expired}>{status ? <p>Active</p> : <p>Expired</p>}</div>
-                            </td>
-                        </tr>
 
-                        <tr>
-                            <td>Mentee</td>
-                            <td>student1</td>
-                            <td>student8.bitsathy.ac.in</td>
-                            <td>Java level-1</td>
-                            <td>26-04-2025 to 03-05-2025</td>
-                            <td>
-                                <div className={styles.expired}><p>Expired</p></div>
-                            </td>
-                        </tr>
+            
+            {mentorSlotBox && 
+                    <div style={{width:"100vw",justifyItems:"center",alignContents:"center",marginBottom:10}}>
+                        <div className={styles.bookTop_btn} style={{borderRadius:8,padding:10,color:"white", backgroundColor:"#7D53F6"}} onClick={()=>{setMentor(true)}}>book a slot</div>
+                    </div>}
 
-                        <tr>
-                            <td>Mentor</td>
-                            <td>student1</td>
-                            <td>student1.bitsathy.ac.in<br/>student2.bitsathy.ac.in<br/>student3.bitsathy.ac.in<br/>student4.bitsathy.ac.in</td>
-                            <td>C level-5</td>
-                            <td>26-04-2025 to 03-05-2025</td>
-                            <td><div className={styles.active}>Approved</div></td>
-                        </tr>
-                    </tbody>
-                </table>
+                {menteeSlotBox && 
+                <div style={{width:"100vw",justifyItems:"center",alignContents:"center",marginBottom:10}}>
+                    <div className={styles.bookTop_btn} style={{borderRadius:8,padding:10,color:"white", backgroundColor:"#7D53F6"}} onClick={()=>{setMentee(true)}}>book a slot</div>
+                </div>}
+
+            <div className={styles.slotContainer}>
+                {mentorSlotBox && 
+                <div className={styles.slotsBox}>
+                    <div className={styles.slotBox_gap} style={{paddingTop:15}}>
+                        <p style={{color:"#6E728F"}}>Mentor Name</p>
+                        <div style={{paddingTop:5}}>
+                            <p>Gowtham J</p>
+                        </div>
+                    </div>
+                    <div className={styles.slotBox_gap}>
+                        <p style={{color:"#6E728F"}}>course details</p>
+                        <div style={{paddingTop:5}}>
+                        <p>C level -5</p>
+                        </div>
+                    </div>
+                    <div className={styles.slotBox_gap}>
+                        <p style={{color:"#6E728F"}}>Mentorship Date</p>
+                        <div style={{paddingTop:5}}>
+                        <p>27-04-2025 to 04-05-2025</p>
+                        </div>
                         
-        </div>
+                    </div>
+                    <div className={styles.slotBox_gap}>
+                        <p style={{color:"#6E728F"}}>Mentee's details</p>
+                        <div style={{paddingTop:5}}>  {/* here only map function is coming */}
+                            <p>student1 | student1@bitsathy.ac.in | c level - 2</p>
+                        </div>
+                    </div>
+                    <div className={styles.slotBox_gap}>
+                        <p style={{color:"#6E728F"}}>status</p>
+                        <div style={{paddingTop:5}}>
+                            <div className={styles.status_button} style={{marginBottom:10}}>pending</div> 
+                        </div>
+                    </div>
+                </div>}
+
+                {menteeSlotBox && 
+                <div className={styles.slotsBox}>
+                    <div className={styles.slotBox_gap} style={{paddingTop:15}}>
+                        <p style={{color:"#6E728F"}}>mentor name</p>
+                            <div style={{marginTop:5}}>
+                                <p>Gowtham J</p>
+                            </div>
+                    </div>
+                    <div className={styles.slotBox_gap}>
+                        <p style={{color:"#6E728F"}}>mentor email</p>
+                            <div style={{marginTop:5}}>
+                                <p>gowthamj.al24@bitsathy.ac.in</p>
+                            </div>
+                    </div>
+                    <div className={styles.slotBox_gap}>
+                        <p style={{color:"#6E728F"}}>mentor skill</p>
+                            <div style={{marginTop:5}}>
+                                <p>c level - 5</p>
+                            </div>
+                    </div>
+                    <div className={styles.slotBox_gap}>
+                        <p style={{color:"#6E728F"}}>mentorship date</p>
+                            <div style={{marginTop:5}}>
+                                <p>27-04-2025 to 04-05-2025</p>
+                            </div>
+                    </div>
+                    <div className={styles.slotBox_gap} style={{paddingBottom:15}}>
+                        <p style={{color:"#6E728F"}}>status</p>
+                            <div style={{marginTop:5}}>
+                                <div className={styles.status_button} style={{backgroundColor:"green", color:"white"}}>ongoing</div>
+                            </div>
+                    </div>
+                </div>}
+            </div>
     </div>
         
     )
