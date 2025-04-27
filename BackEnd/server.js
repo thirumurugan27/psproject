@@ -1,6 +1,8 @@
 const express = require("express");
 const mysql = require("mysql2");
 const cors = require("cors");
+const cron = require("node-cron");
+
 
 const config = require("./src/config/config.js").development;
 const app = express();
@@ -268,35 +270,40 @@ app.get("/mentorrequests-details/:email", (req, res) => {
 app.get("/approved-mentors/:student_email", (req, res) => {
   const student_email = req.params.student_email;
 
-  // Check if student is already mentor or mentee
+  // Check if student is already mentor, mentee, or has pending mentor request
   const checkSql = `
     SELECT student_email AS email FROM mentors WHERE student_email = ?
     UNION
     SELECT mentee_email AS email FROM mentees WHERE mentee_email = ? AND status = 'ongoing'
+    UNION
+    SELECT student_email AS email FROM mentor_requests WHERE student_email = ? AND status = 'pending'
   `;
 
-  db.query(checkSql, [student_email, student_email], (err0, existing) => {
-    if (err0) return res.status(500).json({ error: "Check error" });
+  db.query(
+    checkSql,
+    [student_email, student_email, student_email],
+    (err0, existing) => {
+      if (err0) return res.status(500).json({ error: "Check error" });
 
-    if (existing.length > 0) {
-      // Student is already a mentor or mentee
-      return res.status(200).json([]);
-    }
+      if (existing.length > 0) {
+        // Student is already a mentor, mentee, or has pending mentor request
+        return res.status(200).json([]);
+      }
 
-    // Get student levels
-    db.query(
-      "SELECT * FROM student_levels WHERE student_email = ?",
-      [student_email],
-      (err1, levels) => {
-        if (err1) return res.status(500).json({ error: "Level fetch error" });
+      // Get student levels
+      db.query(
+        "SELECT * FROM student_levels WHERE student_email = ?",
+        [student_email],
+        (err1, levels) => {
+          if (err1) return res.status(500).json({ error: "Level fetch error" });
 
-        const studentLevels = {};
-        levels.forEach((row) => {
-          studentLevels[row.language_name] = row.level;
-        });
+          const studentLevels = {};
+          levels.forEach((row) => {
+            studentLevels[row.language_name] = row.level;
+          });
 
-        // Get mentors and their mentee counts
-        const sql = `
+          // Get mentors and their mentee counts
+          const sql = `
           SELECT 
             m.student_email AS mentor_email, 
             u.name AS mentor_name, 
@@ -312,36 +319,34 @@ app.get("/approved-mentors/:student_email", (req, res) => {
           GROUP BY m.student_email, m.language_name
         `;
 
-        db.query(sql, (err2, mentors) => {
-          if (err2)
-            return res.status(500).json({ error: "Mentor fetch error" });
+          db.query(sql, (err2, mentors) => {
+            if (err2)
+              return res.status(500).json({ error: "Mentor fetch error" });
 
-          const filtered = mentors
-            .filter((m) => {
-              const studentLevel = studentLevels[m.language_name] || 0;
-              return (
-                m.mentor_email !== student_email &&
-                m.mentor_level >= studentLevel + 2 &&
-                m.mentee_count < 10
-              );
-            })
-            .map((m) => ({
-              mentor_name: m.mentor_name,
-              language_name: m.language_name,
-              mentor_level: m.mentor_level,
-              mentor_email: m.mentor_email,
-            }));
+            const filtered = mentors
+              .filter((m) => {
+                const studentLevel = studentLevels[m.language_name] || 0;
+                return (
+                  m.mentor_email !== student_email &&
+                  m.mentor_level >= studentLevel + 2 &&
+                  m.mentee_count < 10
+                );
+              })
+              .map((m) => ({
+                mentor_name: m.mentor_name,
+                language_name: m.language_name,
+                mentor_level: m.mentor_level,
+                mentor_email: m.mentor_email,
+              }));
 
-          res.json(filtered);
-              //"mentor_name": "Student1",
-              // "language_name": "C",
-              // "mentor_level": 5,
-              // "mentor_email": "student1@example.com"
-        });
-      }
-    );
-  });
+            res.json(filtered);
+          });
+        }
+      );
+    }
+  );
 });
+
 
 
 app.post("/assign-mentee", (req, res) => {
@@ -371,6 +376,7 @@ app.post("/assign-mentee", (req, res) => {
 });
 
 // ---------------- MENTORSHIP HISTORY ------------------
+
 app.get("/menteeslist/:mentor_email/:language_name", (req, res) => {
   const { mentor_email, language_name } = req.params;
 
@@ -397,13 +403,16 @@ app.get("/menteeslist/:mentor_email/:language_name", (req, res) => {
       return res.status(404).json({ message: "No mentees found" });
     }
     res.status(200).json(results);
+    // returns
+    //mentees list
+    //  "mentee_email": "student10.al24@bitsathy.ac.in",
+    //  "mentee_name": "student10",
+    //  "language_name": "C",
+    //   "start_date": "2025-04-26T18:30:00.000Z",
+    //   "end_date": "2025-05-02T18:30:00.000Z",
+    //   "status": "ongoing"
 
-    //"mentee_email": "student2.al24@bitsathy.ac.in",
-    // "mentee_name": "student2",
-    // "language_name": "C",
-    // "start_date": "2025-04-19T18:30:00.000Z",
-    // "end_date": "2025-04-25T18:30:00.000Z",
-    // "status": "ongoing"
+   
   });
 });
 
@@ -432,8 +441,52 @@ app.get("/mentee-history/:email", (req, res) => {
   );
 });
 
+
 // ---------------- SERVER START ------------------
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
+});
+
+//------------Auto Updat Ongoing status in Tables---------------
+// Schedule: Run every day at 12:01 AM
+cron.schedule("1 0 * * *", () => {
+  console.log("⏰ Running scheduled task to update mentorship system...");
+
+  // 1. Expire mentor requests older than 7 days
+  const expireRequestsSql = `
+    UPDATE mentor_requests
+    SET status = 'expired'
+    WHERE status = 'pending'
+      AND DATEDIFF(CURDATE(), request_date) > 6
+  `;
+  db.query(expireRequestsSql, (err, result) => {
+    if (err) console.error("❌ Error expiring mentor requests:", err);
+    else console.log(`✅ Expired ${result.affectedRows} mentor requests`);
+  });
+
+  // 2. Expire mentorships older than 7 days
+  const expireMentorshipsSql = `
+    UPDATE mentees
+    SET status = 'expired'
+    WHERE status = 'ongoing'
+      AND DATEDIFF(CURDATE(), start_date) > 6
+  `;
+  db.query(expireMentorshipsSql, (err2, result2) => {
+    if (err2) console.error("❌ Error expiring mentees:", err2);
+    else console.log(`✅ Expired ${result2.affectedRows} mentees`);
+  });
+
+  // Optional: Also expire mentors if you want (if mentorship ends mentor role too)
+  const expireMentorsSql = `
+    UPDATE mentors
+    SET status = 'expired'
+    WHERE status = 'ongoing'
+      AND DATEDIFF(CURDATE(), start_date) > 6
+  `;
+  db.query(expireMentorsSql, (err3, result3) => {
+    if (err3) console.error("❌ Error expiring mentors:", err3);
+    else console.log(`✅ Expired ${result3.affectedRows} mentors`);
+  });
+
 });
