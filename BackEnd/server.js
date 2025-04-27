@@ -165,21 +165,12 @@ app.post("/send-mentor-request", (req, res) => {
         const requestStatus = result[0].status; // Assuming you have a 'status' column like 'pending', 'approved', 'rejected'
 
         if (requestStatus === "pending") {
-          return res
-            .status(200)
-            .json({ message: "Previous request is pending" });
+          return res.status(200).json({ message: "Previous request is pending" });
         } else if (requestStatus === "approved") {
-          return res
-            .status(200)
-            .json({ message: "Already approved as mentor" });
+          return res.status(200).json({ message: "Already approved as mentor" });
         } else if (requestStatus === "rejected") {
           // If rejected, allow re-request after some time maybe?
-          return res
-            .status(200)
-            .json({
-              message:
-                "Previous request was rejected. Please wait before reapplying.",
-            });
+          return res.status(200).json({ message: "Previous request was rejected. Please wait before reapplying." });
         } else {
           return res.status(200).json({ message: "Unknown request status" });
         }
@@ -278,13 +269,13 @@ app.get("/mentorrequests-details/:email", (req, res) => {
     }
     res.status(200).json(results);
     // returns
-    // "request_id": 1,
-    // "student_name": "Thirumurugan K",
-    // "student_email": "thirumurugank.al24@bitsathy.ac.in",
-    // "language_name": "C",
-    // "level": 6,
-    // "status": "approved",
-    // "requested_on": "2025-04-24 04:57:03"
+    // "request_id": 26,
+    //  "student_name": "newstudent1",
+    // "student_email": "newstudent1@bitsathy.ac.in",
+    //  "language_name": "C++",
+    //  "level": 3,
+    //  "status": "rejected",
+    //  "requested_on": "27-04-2025
   });
 });
 
@@ -409,117 +400,92 @@ app.post("/assign-mentee", (req, res) => {
 });
 
 // ---------------- MENTORSHIP HISTORY ------------------
-app.get("/menteeslist/:mentor_email", (req, res) => {
-  const { mentor_email } = req.params;
 
-  // First query: get mentees list
-  const menteesSql = `
-    SELECT 
-      m.mentee_email,
-      u1.name AS mentee_name,
-      m.language_name,
-      sl1.level AS mentee_level,
-      m.start_date,
-      m.end_date,
-      m.status,
-      u2.name AS mentor_name,
-      sl2.level AS mentor_level
-    FROM mentees m
-    JOIN userdetails u1 ON u1.email = m.mentee_email
-    JOIN student_levels sl1 ON sl1.student_email = m.mentee_email AND sl1.language_name = m.language_name
-    JOIN userdetails u2 ON u2.email = m.mentor_email
-    JOIN student_levels sl2 ON sl2.student_email = m.mentor_email AND sl2.language_name = m.language_name
-    WHERE m.mentor_email = ?
-  `;
 
-  // Second query: get pending mentor requests by this mentor_email
-  const pendingRequestsSql = `
+app.get("/mentorrequests-details/:email", (req, res) => {
+  const student_email = req.params.email; // 🔥 FIXED
+
+  const sql = `
     SELECT 
-      mr.student_email AS requestor_email,
-      u.name AS requestor_name,
+      mr.id AS request_id,
+      u.name AS student_name,
+      u.email AS student_email,
       mr.language_name,
       sl.level,
-      mr.request_date,
-      mr.status
+      mr.status,
+      DATE_FORMAT(mr.request_date, '%d-%m-%Y') AS requested_on
     FROM mentor_requests mr
     JOIN userdetails u ON u.email = mr.student_email
-    JOIN student_levels sl ON sl.student_email = mr.student_email AND sl.language_name = mr.language_name
-    WHERE mr.status = 'pending' AND mr.student_email = ?
+    JOIN student_levels sl 
+      ON sl.student_email = mr.student_email 
+      AND sl.language_name = mr.language_name
+    WHERE mr.student_email = ?
+    ORDER BY mr.request_date DESC
   `;
 
-  // Execute both queries
-  db.query(menteesSql, [mentor_email], (err, menteesResults) => {
+  db.query(sql, [student_email], (err, results) => {
     if (err) {
       console.error("DB error:", err);
-      return res.status(500).json({ message: "Database error in mentees" });
+      return res.status(500).json({ message: "Database error" });
     }
-
-    db.query(pendingRequestsSql, [mentor_email], (err2, pendingResults) => {
-      if (err2) {
-        console.error("DB error:", err2);
-        return res
-          .status(500)
-          .json({ message: "Database error in pending requests" });
-      }
-
-      const formattedMentees = menteesResults.map((mentee) => ({
-        mentor_email: mentor_email,
-        mentor_name: mentee.mentor_name,
-        mentor_level: mentee.mentor_level,
-        language_name: mentee.language_name,
-        mentee_email: mentee.mentee_email,
-        mentee_name: mentee.mentee_name,
-        mentee_level: mentee.mentee_level,
-        start_date: formatDate(mentee.start_date),
-        end_date: formatDate(mentee.end_date),
-        status: mentee.status,
-        //"mentees": [
-        //       {
-        //         "mentor_email": "thirumurugank.al24@bitsathy.ac.in",
-        //         "mentor_name": "Thirumurugan K",
-        //         "mentor_level": 6,
-        //         "language_name": "C",
-        //         "mentee_email": "student9.al24@bitsathy.ac.in",
-        //         "mentee_name": "student9",
-        //         "mentee_level": 0,
-        //         "start_date": "27-04-2025",
-        //         "end_date": "03-05-2025",
-        //         "status": "ongoing"
-        //      }
-        // ],
-        // "pending_requests": []
-      }));
-
-      const formattedPendingRequests = pendingResults.map((request) => ({
-        requestor_email: request.requestor_email,
-        requestor_name: request.requestor_name,
-        language_name: request.language_name,
-        level: request.level,
-        request_date: formatDate(request.request_date),
-        status: request.status,
-// {
-//     "mentees": [],
-//     "pending_requests": [
-//         {
-//             "requestor_email": "newstudent1@bitsathy.ac.in",
-//             "requestor_name": "newstudent1",
-//             "language_name": "C++",
-//             "level": 3,
-//             "request_date": "27-04-2025",
-//             "status": "pending"
-//         }
-//     ]
-// }
-      }));
-
-      res.status(200).json({
-        mentees: formattedMentees,
-        pending_requests: formattedPendingRequests,
-      });
-    });
+    res.status(200).json(results);
+    // returns
+    // "request_id": 26,
+    //  "student_name": "newstudent1",
+    // "student_email": "newstudent1@bitsathy.ac.in",
+    //  "language_name": "C++",
+    //  "level": 3,
+    //  "status": "rejected",
+    //  "requested_on": "27-04-2025
   });
 });
 
+app.get("/menteeslist/:mentor_email", (req, res) => {
+  const { mentor_email } = req.params;
+  const sql = `
+    SELECT 
+      m.mentee_email,
+      u.name AS mentee_name,
+      m.language_name,
+      sl.level AS mentee_level,
+      m.start_date,
+      m.end_date,
+      m.status
+    FROM mentees m
+    JOIN userdetails u ON u.email = m.mentee_email
+    JOIN student_levels sl ON sl.student_email = m.mentee_email AND sl.language_name = m.language_name
+    WHERE m.mentor_email = ?
+  `;
+
+  db.query(sql, [mentor_email], (err, results) => {
+
+    
+    if (err) {
+      console.error("DB error:", err);
+      return res.status(500).json({ message: "Database error" });
+    }
+    if (results.length === 0) {
+      return res.status(200).json({ message: "No mentees found" }); //naa tha -G
+    }
+
+    // Format start_date and end_date to dd-mm-yyyy
+    const formattedResults = results.map((mentee) => ({
+      ...mentee,
+      start_date: formatDate(mentee.start_date),
+      end_date: formatDate(mentee.end_date),
+    }));
+
+    res.status(200).json(formattedResults);
+
+    // "mentee_email": "student10.al24@bitsathy.ac.in",
+    //   "mentee_name": "student10",
+    //   "language_name": "C",
+    //   "mentee_level": 0,
+    //   "start_date": "27-04-2025",
+    //   "end_date": "03-05-2025",
+    //   "status": "ongoing"
+  });
+});
 
 // Helper function for date formatting
 function formatDate(dateString) {
