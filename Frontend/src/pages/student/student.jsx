@@ -207,7 +207,8 @@ function Student() {
                 
                 console.log(response.data.message);
                 setIsSlotAvailable(response.data.message);
-                window.location.reload();
+                window.location.reload(); 
+                
                 
             }
             catch(err)
