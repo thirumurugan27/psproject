@@ -226,7 +226,6 @@ app.put("/update-request-status", (req, res) => {
     });
   });
 });
-
 app.get("/mentorrequests-details/:email", (req, res) => {
   const student_email = req.params.email; // 🔥 FIXED
 
@@ -245,7 +244,7 @@ app.get("/mentorrequests-details/:email", (req, res) => {
       ON sl.student_email = mr.student_email 
       AND sl.language_name = mr.language_name
     WHERE mr.student_email = ?
-    ORDER BY mr.request_date DESC
+    ORDER BY mr.id ASC
   `;
 
   db.query(sql, [student_email], (err, results) => {
@@ -254,16 +253,9 @@ app.get("/mentorrequests-details/:email", (req, res) => {
       return res.status(500).json({ message: "Database error" });
     }
     res.status(200).json(results);
-    // returns
-    // "request_id": 1,
-    // "student_name": "Thirumurugan K",
-    // "student_email": "thirumurugank.al24@bitsathy.ac.in",
-    // "language_name": "C",
-    // "level": 6,
-    // "status": "approved",
-    // "requested_on": "2025-04-24 04:57:03"
   });
 });
+
 
 // ---------------- STUDENT SELECT MENTOR ------------------
 // Get approved mentors for a student
@@ -412,7 +404,7 @@ app.get("/menteeslist/:mentor_email", (req, res) => {
       return res.status(500).json({ message: "Database error" });
     }
     if (results.length === 0) {
-      return res.status(200).json({ message: "No mentees found" }); //naa tha -G
+      return res.status(200).json([]); //naa tha -G
     }
 
     // Format start_date and end_date to dd-mm-yyyy
@@ -497,6 +489,32 @@ function formatDate(dateString) {
   const year = date.getFullYear();
   return `${day}-${month}-${year}`;
 }
+//getting status from mentors table 
+app.get("/mentorship-status/:email", (req, res) => {
+  const student_email = req.params.email;
+
+  const sql = `
+    SELECT 
+      start_date,
+      end_date,
+      status
+    FROM mentors
+    WHERE student_email = ?
+  `;
+
+  db.query(sql, [student_email], (err, results) => {
+    if (err) {
+      console.error("DB error:", err);
+      return res.status(500).json({ message: "Database error" });
+    }
+
+    if (results.length === 0) {
+      return res.status(200).json({ message: "No mentor details found for this email" });
+    }
+
+    res.status(200).json(results);
+  });
+});
 
 // ---------------- SERVER START ------------------
 

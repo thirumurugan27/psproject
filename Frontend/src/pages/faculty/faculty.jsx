@@ -14,7 +14,7 @@ function Faculty() {
     const [status,setStatus] = useState("");
     const [data ,setData] = useState([]);
     const navigate = useNavigate();
-
+    const [displayTime ,setDisplayTime] = useState(true);
     async function GetDetails() {
         try {
             const response = await axios.get("http://localhost:5000/mentorrequests"); 
@@ -60,6 +60,17 @@ function Faculty() {
         }
     }
 
+    useEffect(() => {
+        if (status.length > 0) {
+            setDisplayTime(true);
+            const timer = setTimeout(() => {
+                setDisplayTime(false);
+            }, 2000);
+    
+            return () => clearTimeout(timer);
+        }
+    }, [status]);
+    
     return (
         <div className={styles.mainBox}>
             <div className={styles.hero}>
@@ -72,9 +83,8 @@ function Faculty() {
                 </div>
             </div>
 
-            {/* below is for map() */}
             <div>
-                <div style={{width:"100%",textAlign:"center"}}><p style={{color:status === "Mentor request rejected successfully"? "green":"red"}}>{status}</p></div>
+                <div style={{width:"100%",textAlign:"center"}}>{displayTime && <p style={{color:status === "Mentor request rejected successfully"? "red":"green"}}>{status}</p>}</div>
                 <div className={styles.cardsContainer}>
                     {
                         data.length === 0 ? "" :

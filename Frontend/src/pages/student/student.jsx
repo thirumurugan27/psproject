@@ -13,7 +13,7 @@ function Student() {
     const [isSlotAvailable , setIsSlotAvailable] = useState("");
     const [requestSkill,setRequestSkill] = useState("");
     const [requestLevel, setRequestLevel] = useState("");       
-    const [mentorSlotBox , setMentorSlotBox] = useState(true);
+    const [mentorSlotBox , setMentorSlotBox] = useState(false);
     const [data_mentorSlot,setData_mentorSlot] = useState([]); //get data
     const [startdate_mentor_SlotBox ,set_startdate_mentor_slotbox] = useState("");
     const [enddate_mentor_SlotBox,set_enddate_mentor_Slotbox] = useState("");
@@ -32,7 +32,10 @@ function Student() {
     const [level_mentee_slotBox, set_level_mentee_slotBox] = useState("");
     const [startdate_mentee_SlotBox ,set_startdate_mentee_Slotbox] = useState("");
     const [enddate_mentee_SlotBox ,set_enddate_mentee_Slotbox] = useState("");
-    const [status_mentee_slotBox ,set_status_mentee_Slotbox] = useState("");
+    const [status_mentee_slotBox ,set_status_mentee_Slotbox] = useState("");  // ongoing / expired
+    const [accept_reject_pending ,set_accept_reject_pending] = useState("");
+    const [fixed_level_mentor ,set_fixed_level_mentor] = useState("");
+    const [fixed_language_mentor ,set_fixed_language_mentor] = useState("");
 
     const [data,setData] = useState([]);
     const [dataMentee ,setDataMentee] = useState([]);
@@ -82,15 +85,13 @@ function Student() {
     },[]);
 
     useEffect(()=>{
+        
         async function GetMenteeDetail_for_mentor() {
             try{
                 const response = await axios.get(`http://localhost:5000/menteeslist/${email}`);  // i need to pass mentor's language_name
                 console.log("mentee detail for mentor: ",response.data);
                 if(response.data){
                     setData_mentorSlot(response.data);
-                    set_startdate_mentor_slotbox(response.data[0].start_date);
-                    set_enddate_mentor_Slotbox(response.data[0].end_date);
-                    set_status_mentor_slotbox(response.data[0].status);
                 }
             }
             catch(err){
@@ -100,7 +101,7 @@ function Student() {
         async function GetMentorDetail_for_Mentee() {
             try{
                 const response = await axios.get(`http://localhost:5000/mentee-history/${email}`);
-               
+            
                 if (response.data){
                     console.log("mentor detail for mentee: ",response.data[0]);
                     set_name_mentee_slotBox(response.data[0].mentor_name);
@@ -116,10 +117,50 @@ function Student() {
                 console.log(err)
             }
         }
+        async function GetMentorDetails_for_mentor() {
+            try{
+                const response = await axios.get(`http://localhost:5000/mentorrequests-details/${email}`);
+                if(response.data){
+                    console.log("MENTOR STATUS,LANGUAGE AND LEVEL",response.data);
+                    const size = Object.keys(response.data).length;
+                    set_accept_reject_pending(response.data[size-1].status);
+                    set_fixed_language_mentor(response.data[size-1].language_name);
+                    set_fixed_level_mentor(response.data[size-1].level);
+                }
+            }
+            catch(err){
+                console.log(err);
+            }
+        }
+
         GetMenteeDetail_for_mentor();
         GetMentorDetail_for_Mentee();
+        GetMentorDetails_for_mentor();
+
         },[]);
     
+        useEffect(() => {
+            async function Mentor_status() {
+            try {
+            console.log("Fetching data for email:", email);
+            const response = await axios.get(`http://localhost:5000/mentorship-status/${email}`);
+            
+            if (response.data) {
+                console.log("Received data status: (MENTOR STATUS ) ");
+                set_status_mentor_slotbox(response.data[0].status);
+                set_startdate_mentor_slotbox(response.data[0].start_date);
+                set_enddate_mentor_Slotbox(response.data[0].end_date);
+            } else {
+                console.log("No data found for this email.");
+            }
+            } catch (err) {
+            console.log("Error fetching mentorship status:", err);
+            }
+        }
+        Mentor_status();
+        }, [email]); // Ensure email changes trigger this useEffect
+        
+
     async function MentorRequestSent() {
         console.log("Mentor-request-sent...","\n","email:",email ,"\n", "skill_name: ",requestSkill)
         if(!slotNamePressed)
@@ -135,7 +176,8 @@ function Student() {
             try{
                 const response = await axios.post("http://localhost:5000/send-mentor-request" , {student_email:email ,language_name:requestSkill })
                 const data = response.data.message;
-                setIsSlotAvailable(data)
+                setIsSlotAvailable(data);
+                window.location.reload();
             }
             catch (err)
             {
@@ -165,13 +207,13 @@ function Student() {
                 
                 console.log(response.data.message);
                 setIsSlotAvailable(response.data.message);
+                window.location.reload();
             }
             catch(err)
             {
                 console.log(err || "received unexpected error!!!")
             }
         }
-
     }
     return (
         <div className={styles.mainBox}>
@@ -309,19 +351,20 @@ function Student() {
 
             
             { mentorSlotBox && 
-                    <div style={{width:"100vw",justifyItems:"center",alignContents:"center",marginBottom:10}}>
-                        <div className={styles.bookTop_btn} style={{borderRadius:8,padding:10,color:"white", backgroundColor:"#7D53F6"}} onClick={()=>{setMentor(true)}}>book a slot</div>
+                    <div className={styles.book_a_slot_center} style={{width:"100vw",justifyItems:"center",alignContents:"center",marginBottom:10}}>
+                        <div className={styles.bookTop_btn} style={{borderRadius:8,padding:10,color:"white", backgroundColor:"#7D53F6"}} onClick={()=>{setMentor(true)}}>book a slot for mentor</div>
                     </div>}
 
             {menteeSlotBox && 
-                <div style={{width:"100vw",justifyItems:"center",alignContents:"center",marginBottom:10}}>
-                    <div className={styles.bookTop_btn} style={{borderRadius:8,padding:10,color:"white", backgroundColor:"#7D53F6"}} onClick={()=>{setMentee(true)}}>book a slot</div>
+                <div className={styles.book_a_slot_center} style={{width:"100vw",justifyItems:"center",alignContents:"center",marginBottom:10}}>
+                    <div className={styles.bookTop_btn} style={{borderRadius:8,padding:10,color:"white", backgroundColor:"#7D53F6"}} onClick={()=>{setMentee(true)}}>book a slot for mentee</div>
                 </div>}
 
             <div className={styles.slotContainer}>
                 {
+                    
 
-        status_mentor_slotbox && mentorSlotBox && 
+                accept_reject_pending === "approved" ? mentorSlotBox && 
                 <div className={styles.slotsBox}>
                     <div className={styles.slotBox_gap} style={{paddingTop:15}}>
                         <p style={{color:"#6E728F"}}>Mentor Name</p>
@@ -332,7 +375,7 @@ function Student() {
                     <div className={styles.slotBox_gap}>
                         <p style={{color:"#6E728F"}}>course details</p>
                         <div style={{paddingTop:5}}>
-                        <p>C level -5</p>
+                        <p>{fixed_language_mentor} level -{fixed_level_mentor}</p>
                         </div>
                     </div>
                     <div className={styles.slotBox_gap}>
@@ -344,11 +387,13 @@ function Student() {
                     </div>
                     <div className={styles.slotBox_gap}>
                         <p style={{color:"#6E728F"}}>Mentee's details</p>
-                        {data_mentorSlot.map(({mentee_name ,mentee_email ,language_name ,mentee_level},id)=>(
-                            <div key={id} style={{paddingTop:5}}>  
-                                <p>{mentee_name} | {mentee_email} | {language_name} level - {mentee_level}</p>
-                            </div>
-                        ))}
+                        {data_mentorSlot.length !== 0 &&
+
+                        data_mentorSlot.map(({ mentee_name, mentee_email, language_name, mentee_level }, id) => (
+                        <div key={id} style={{ paddingTop: 5 }}>
+                            <p>{mentee_name} | {mentee_email} | {language_name} level - {mentee_level}</p>
+                        </div>))}
+
                         
                     </div>
                     <div className={styles.slotBox_gap}>
@@ -357,7 +402,28 @@ function Student() {
                             <div className={styles.status_button} style={{marginBottom:10,backgroundColor:status_mentor_slotbox==="ongoing"?"green":"red"}}>{status_mentor_slotbox}</div> 
                         </div>
                     </div>
-                </div>}
+                </div> : accept_reject_pending.length!==0 ?
+                <div className={styles.slotsBox}>
+                    <div className={styles.slotBox_gap} style={{paddingTop:15}}>
+                        <p style={{color:"#6E728F"}}>Mentor Name</p>
+                        <div style={{paddingTop:5}}>
+                            <p>{name}</p>
+                        </div>
+                    </div>
+                    <div className={styles.slotBox_gap}>
+                        <p style={{color:"#6E728F"}}>course details</p>
+                        <div style={{paddingTop:5}}>
+                        <p>{fixed_language_mentor} level -{fixed_level_mentor}</p>
+                        </div>
+                    </div>
+                    <div className={styles.slotBox_gap}>
+                        <p style={{color:"#6E728F"}}>status</p>
+                        <div style={{paddingTop:5}}>
+                            <div className={styles.status_button} style={{marginBottom:10,backgroundColor:accept_reject_pending==="rejected"?"red":"orange", color:accept_reject_pending}}>{accept_reject_pending}</div> 
+                        </div>
+                    </div>
+                </div> : ""
+                }
         
         {
             name_mentee_slotBox !== "" &&  menteeSlotBox &&  
