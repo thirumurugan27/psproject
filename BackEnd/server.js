@@ -565,7 +565,24 @@ app.get("/mentorship-status/:email", (req, res) => {
       return res.status(200).json({ message: "No mentor details found for this email" });
     }
 
-    res.status(200).json(results);
+    // Format dates to dd-mm-yyyy
+    const formattedResults = results.map((row) => {
+      const formatDate = (dateStr) => {
+        const date = new Date(dateStr);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
+      };
+
+      return {
+        start_date: formatDate(row.start_date),
+        end_date: formatDate(row.end_date),
+        status: row.status
+      };
+    });
+
+    res.status(200).json(formattedResults);
   });
 });
 
