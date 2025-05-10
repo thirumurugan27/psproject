@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db");
 
+//get student levels and mentor/mentee details
 router.get("/levels/:email", (req, res) => {
   const email = req.params.email;
 

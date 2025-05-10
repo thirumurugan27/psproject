@@ -112,11 +112,11 @@ router.get('/mentor-feedback/:mentor_email/:language', (req, res) => {
           f.rating, 
           f.feedback
       FROM 
-          mentorr_feedback f
+          mentor_feedback f  -- Corrected table name here
       JOIN 
           userdetails u ON f.mentee_email = u.email
       WHERE 
-          f.mentor_email = ? AND f.language = ?;
+          f.mentor_email = ? AND f.language_name = ?;
   `;
 
   db.query(query, [mentorEmail, language], (err, results) => {
@@ -132,8 +132,18 @@ router.get('/mentor-feedback/:mentor_email/:language', (req, res) => {
 
     // Return feedback and ratings as an array of objects
     return res.json(results);
+      //return structured data
+      //   [
+      //     {
+      //       "name": "student1",
+      //       "email": "student1.al24@bitsathy.ac.in",
+      //       "rating": 4,
+      //       "feedback": "Hey Very Good Man"
+      //     }
+      // ]
   });
 });
+
 
 
 module.exports = router;

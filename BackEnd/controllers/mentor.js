@@ -485,7 +485,7 @@ router.get('/avg-rating/:mentor_email/:language', (req, res) => {
       FROM 
           mentor_feedback
       WHERE 
-          mentor_email = ? AND language = ?;
+          mentor_email = ? AND language_name = ?;
   `;
 
   db.query(query, [mentorEmail, language], (err, results) => {
@@ -494,12 +494,51 @@ router.get('/avg-rating/:mentor_email/:language', (req, res) => {
       return res.status(500).send('Internal server error');
     }
 
-    const avgRating = results[0].avg_rating === null ? 0 : results[0].avg_rating;
+    const avgRating = results[0].avg_rating === null ? 0 : Math.floor(results[0].avg_rating);
+
 
     return res.send(`${avgRating}`);  // Send just the average rating as a plain number
   });
 });
  
+// To get the feedback of a mentee given by previous mentor
+router.get('/feedback/:mentee_email/:language', (req, res) => {
+  const menteeEmail = req.params.mentee_email;
+  const language = req.params.language;
+
+  const query = `
+    SELECT 
+      u.name AS name, 
+      u.email AS email, 
+      f.rating, 
+      f.feedback
+    FROM 
+      mentee_feedback f
+    JOIN 
+      userdetails u ON f.mentor_email = u.email
+    WHERE 
+      f.mentee_email = ? AND f.language_name = ?;
+  `;
+
+  db.query(query, [menteeEmail, language], (err, results) => {
+    if (err) {
+      console.error('Error fetching feedback for mentee by language:', err);
+      return res.status(500).send({ error: 'Database error', details: err.message });
+    }
+
+    return res.json(results);
+    // returns
+    // [
+    //    {
+    //       "name": "Gowtham J",
+    //       "email": "gowthamj.al24@bitsathy.ac.in",
+    //       "rating": 5,
+    //       "feedback": "Good mentee"
+    //    }
+    // ]
+  });
+});
+
 
 
 module.exports = router;

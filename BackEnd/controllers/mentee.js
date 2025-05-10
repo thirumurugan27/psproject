@@ -2,8 +2,7 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db");
 
-
-//available mentors for a student
+//👩‍🏫👨‍🏫available mentors for a student 
 router.get("/mentors/:student_email", (req, res) => {
   const student_email = req.params.student_email;
 
@@ -85,7 +84,7 @@ router.get("/mentors/:student_email", (req, res) => {
 });
 
 
-// POST mentee request to mentor
+// 📝📚👩‍🏫👨‍🏫POST mentee request to mentor
 router.post("/request", (req, res) => {
   const { student_email, mentor_email, language_name } = req.body;
 
@@ -127,7 +126,7 @@ router.post("/request", (req, res) => {
 });
 
 
-//to get mentor detail
+//🔍📋to get mentor detail
 router.get("/mentor-detail/:email", (req, res) => {
   const menteeEmail = req.params.email;
 
@@ -173,7 +172,7 @@ router.get("/mentor-detail/:email", (req, res) => {
   });
 });
 
-
+//🚫✋Dont touch this
 // Helper function for date formatting
 function formatDate(dateString) {
   const date = new Date(dateString);
