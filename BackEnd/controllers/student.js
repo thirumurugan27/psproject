@@ -9,6 +9,7 @@ router.get("/levels/:email", (req, res) => {
     SELECT language_name, level
     FROM student_levels
     WHERE student_email = ?
+    ORDER BY language_name
   `;
 
   db.query(sql, [email], (err, results) => {
@@ -19,8 +20,46 @@ router.get("/levels/:email", (req, res) => {
     }
 
     return res.status(200).json(results);
+
+    //results will be like this
+    // [
+    //   {
+    //     language_name: "C",
+    //     level: 3,
+    //   },
+    //   {
+    //     language_name: "C++",
+    //     level: 3,
+    //   },
+    //   {
+    //     language_name: "Machine Learning",
+    //     level: 0,
+    //   },
+    //   {
+    //     language_name: "UI/UX",
+    //     level: 0,
+    //   },
+    //   {
+    //     language_name: "Networking",
+    //     level: 0,
+    //   },
+    //   {
+    //     language_name: "Data Structure",
+    //     level: 0,
+    //   },
+    //   {
+    //     language_name: "Java",
+    //     level: 0,
+    //   },
+    //   {
+    //     language_name: "Python",
+    //     level: 0,
+    //   },
+    // ];
+
   });
 });
+
 
 
 // Route to get attempts with levels (level1, level2, ... level7) for a given student and language
@@ -67,7 +106,5 @@ router.get('/getattempts', (req, res) => {
     });
   });
 });
-
-
 
 module.exports = router;
