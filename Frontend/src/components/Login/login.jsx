@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Navigate, useNavigate } from "react-router-dom";
-import image from "../../assets/ps.png"
-import google from "../../assets/google.png"
-import "../Login/login.css"
+import { useNavigate } from "react-router-dom";
+import image from "../../assets/ps.png";
+import google from "../../assets/google.png";
+
 function Login() {
+    
+localStorage.clear();
 const [email, setEmail] = useState("");
 const [password, setPassword] = useState("");
 const [error, setError] = useState(null);
@@ -13,99 +15,90 @@ const navigate = useNavigate();
 const handlelogin = async (e) => {
 e.preventDefault();
 try {
-    const response = await axios.post("http://localhost:5000/user/login", {email,password});
+    const response = await axios.post("http://localhost:5000/user/login", {
+    email,
+    password,
+    });
 
     if (response.data) {
-    console.log(response.data.role);
+    const { role, id, name, email } = response.data;
 
-    const role = response.data.role;
-    const student_id = response.data.id;
-    const name = response.data.name;
-    const email = response.data.email;
-
-    localStorage.setItem("role",role);
-    localStorage.setItem("student_id", student_id);
+    localStorage.setItem("role", role);
+    localStorage.setItem("student_id", id);
     localStorage.setItem("name", name);
-    localStorage.setItem("email",email);
-    
-    if (role === "student")
-        navigate(`/login/student`)
-    else if (role === "faculty")
-        navigate("/login/faculty")
-    }
-    else {
+    localStorage.setItem("email", email);
+
+    if (role === "student") navigate("/login/student/mycourses");
+    else if (role === "faculty") navigate("/login/faculty");
+    } else {
     setError("Invalid username or password");
     }
 } catch (error) {
-    setError(
-    error.response?.data?.message || "An error occurred during login"
-    );
+    setError(error.response?.data?.message || "An error occurred during login");
 }
 };
 
 return (
-<div className="outer">
-    <div className="loginbox">
-    <div className="header">
-        <img
-        src={image}
-        alt=""
-        style={{ height: "45px", width: "40px" }}
-        />
-        <h4 style={{ fontWeight: 600, marginLeft: "10px", fontSize: "18px" ,color:"black" ,alignSelf:"center"}}>
-        PS Mentorship
-        </h4>
+<div className="flex justify-center items-center min-h-screen bg-[#EEF1F9] px-4">
+    <div className="bg-white shadow-md rounded-xl w-full max-w-md p-6 sm:p-8">
+    {/* Header */}
+    <div className="flex justify-center items-center space-x-3 mb-5">
+        <img src={image} alt="logo" className="h-10 w-10" />
+        <h4 className="text-lg font-semibold text-black">PS Mentorship</h4>
     </div>
-    <div className="header2">
-        <h1 style={{ fontWeight: 600, color: "#8057F6", fontSize: 21, fontFamily: '"Segoe UI", sans-serif' }}>
-        Hi, Welcome Back!
-        </h1>
-    </div>
-    <div className="inputbox">
-        <p style={{color:"black"}}>Username</p>
+
+    {/* Welcome Back */}
+    <h1 className="text-xl font-semibold text-[#8057F6] text-center mb-6">Hi, Welcome Back!</h1>
+
+    {/* Form */}
+    <form onSubmit={handlelogin} className="space-y-4">
+        <div>
+        <label className="block text-sm text-black mb-1">Username</label>
         <input
-        type="text"
-        placeholder="Enter your username"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        
+            type="text"
+            placeholder="Enter your username"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full h-10 px-3 rounded-md border border-[#ECEEF5] bg-[#EEF1F9] text-black text-sm focus:outline-none focus:ring-2 focus:ring-[#7D53F6]"
         />
-        <p style={{color:"black"}}>Password</p>
+        </div>
+        <div>
+        <label className="block text-sm text-black mb-1">Password</label>
         <input
-        type="password"
-        placeholder="Enter your password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
+            type="password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full h-10 px-3 rounded-md border border-[#ECEEF5] bg-[#EEF1F9] text-black text-sm focus:outline-none focus:ring-2 focus:ring-[#7D53F6]"
         />
-    </div>
-    {error && (
-        <div
-        style={{
-            display: "flex",
-            justifyContent: "center",
-            marginBottom: "2px",
-        }}
+        </div>
+
+        {error && (
+        <p className="text-red-500 text-sm text-center">{error}</p>
+        )}
+
+        <button
+        type="submit"
+        className="hover:cursor-pointer w-full h-11 bg-[#7D53F6] text-white text-lg rounded-md hover:opacity-90 transition"
         >
-        <p style={{ color: "red", fontSize: "14px" }}>{error}</p>
-        </div>
-    )}
-    <button className="loginbtn" onClick={handlelogin}>
         Login
-    </button>
-    <div className="footer">
-        <p>or</p>
+        </button>
+    </form>
+
+    {/* Or */}
+    <div className="flex justify-center my-4">
+        <p className="text-gray-500">or</p>
     </div>
-    <div className="outgoogle">
-        <div className="google">
-        <img
-            src={google}
-            alt="google"
-            style={{ height: "20px", width: "20px",alignSelf:"center" }}
-        />
-        <p style={{marginLeft: "5px", fontSize: "13px" ,alignSelf:"center",color:"black"}}>
-            Sign in with Google
-        </p>
-        </div>
+
+    {/* Google Button */}
+    <div className="flex justify-center">
+        <button
+        type="button"
+        className="flex items-center border border-[#ECEEF5] rounded-md px-4 py-2 bg-white hover:shadow-md transition"
+        >
+        <img src={google} alt="google" className="w-5 h-5" />
+        <span className="ml-2 text-sm text-black">Sign in with Google</span>
+        </button>
     </div>
     </div>
 </div>
@@ -113,4 +106,3 @@ return (
 }
 
 export default Login;
-
