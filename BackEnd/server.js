@@ -10,17 +10,16 @@ app.use(express.json());
 app.use(cors());
 
 const authRoutes=require("./Routes/auth");
-const studentRoutes=require("./controllers/student");
-const facultyRoutes=require("./controllers/faculty");
-const mentorRoutes=require("./controllers/mentor");
-const menteeRoutes=require("./controllers/mentee");
+const studentRoutes = require("./controllers/student");
+const facultyRoutes = require("./controllers/faculty");
+const mentorRoutes = require("./controllers/mentor");
+const menteeRoutes = require("./controllers/mentee");
 
-
-app.use("/api/auth",authRoutes);
-app.use("/api/faculty",facultyRoutes);
-app.use("/api/mentor",mentorRoutes);
-app.use("/api/mentee",menteeRoutes);
-app.use("/api/student",studentRoutes);
+app.use("/auth", authRoutes);
+app.use("/faculty", facultyRoutes);
+app.use("/mentor", mentorRoutes);
+app.use("/mentee", menteeRoutes);
+app.use("/student", studentRoutes);
 
 
 

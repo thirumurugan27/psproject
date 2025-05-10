@@ -47,6 +47,8 @@ router.post("/send-request", (req, res) => {
     }
   );
 });
+
+
 //mentor request changed by faculty
 //To see the ststus of request
 router.get("/request-status/:email", (req, res) => {
@@ -87,27 +89,38 @@ router.get("/request-status/:email", (req, res) => {
   });
 });
 
+
 // To see the mentee requests for a mentor
 // GET /api/mentor/requests/:mentor_email
 router.get("/mentees-requests/:mentor_email", (req, res) => {
   const { mentor_email } = req.params;
 
   const query = `
-        SELECT 
-            mr.student_email, 
-            u.name AS student_name, 
-            mr.language_name, 
-            sl.level,
-            DATE_FORMAT(mr.request_date, '%d-%m-%Y') AS request_date,
-            mr.status
-        FROM mentee_requests mr
-        JOIN userdetails u ON mr.student_email = u.email
-        JOIN student_levels sl 
-          ON sl.student_email = mr.student_email 
-         AND sl.language_name = mr.language_name
-        WHERE mr.mentor_email = ? AND mr.status = 'pending'
-        ORDER BY mr.request_date ASC
-    `;
+    SELECT 
+      mr.student_email, 
+      u.name AS student_name, 
+      mr.language_name, 
+      sl.level,
+      DATE_FORMAT(mr.request_date, '%d-%m-%Y') AS request_date,
+      mr.status
+    FROM mentee_requests mr
+    JOIN userdetails u ON mr.student_email = u.email
+    JOIN student_levels sl 
+      ON sl.student_email = mr.student_email 
+     AND sl.language_name = mr.language_name
+    WHERE 
+      mr.mentor_email = ? 
+      AND mr.status = 'pending'
+      AND NOT EXISTS (
+        SELECT 1 
+        FROM mentor_feedback mf
+        WHERE 
+          mf.mentor_email = mr.mentor_email
+          AND mf.mentee_email = mr.student_email
+          AND mf.language_name = mr.language_name
+      )
+    ORDER BY mr.request_date ASC
+  `;
 
   db.query(query, [mentor_email], (err, requests) => {
     if (err) {
@@ -117,25 +130,13 @@ router.get("/mentees-requests/:mentor_email", (req, res) => {
     if (requests.length === 0) {
       return res
         .status(404)
-        .json({ message: "No pending mentee requests found" });
+        .json({});
     }
 
-    res.json({ pending_requests: requests });
-    // Response structure will look like:
-    // {
-    //   "pending_requests": [
-    //     {
-    //       "student_email": "student1.al24@bitsathy.ac.in",
-    //       "student_name": "student1",
-    //       "language_name": "Java",
-    //       "level": 0,
-    //       "request_date": "09-05-2025",
-    //       "status": "pending"
-    //     }
-    //   ]
-    // }
+    res.json({requests });
   });
 });
+
 
 //To accept and reject the request(Note use DELETE method to delete the request NEXT to This code)
 router.post("/update-request", (req, res) => {
@@ -263,6 +264,8 @@ router.post("/update-request", (req, res) => {
     );
   });
 });
+
+
 //after accepting the request, delete the request
 router.delete("/delete", (req, res) => {
   const query = `DELETE FROM mentee_requests WHERE status = 'delete'`;
@@ -334,7 +337,6 @@ function formatDate(dateString) {
 }
 
 //💻🧑‍💻SLOT book to menteee
-
 router.post('/slot', (req, res) => {
   const { mentor_email, mentee_email, language, start_time } = req.body;
 
@@ -445,6 +447,59 @@ router.post('/slot', (req, res) => {
     });
   });
 });
+
+
+//⭐⭐⭐⭐⭐ Feedback and Rating to mentee
+router.post('/feedback', (req, res) => {
+  const { mentee_email, mentor_email, language_name, rating, feedback } = req.body;
+
+  if (!mentee_email || !mentor_email || !language_name || !rating || !feedback ) {
+    return res.status(400).json({ error: 'All required fields must be provided' });
+  }
+
+  const query = `
+    INSERT INTO mentee_feedback 
+    (mentee_email, mentor_email, language_name, rating, feedback) 
+    VALUES (?, ?, ?, ?, ?)
+  `;
+
+  db.query(query, [mentee_email, mentor_email, language_name, rating, feedback], (err, result) => {
+    if (err) {
+      console.error('Error posting mentee feedback:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+
+    return res.status(200).json({ message: 'feedback to mentee by mentor submitted successfully' });
+  });
+});
+
+
+// To get the AVERAGE rating of a mentor
+router.get('/avg-rating/:mentor_email/:language', (req, res) => {
+  const mentorEmail = req.params.mentor_email;
+  const language = req.params.language;
+
+  const query = `
+      SELECT 
+          AVG(rating) AS avg_rating
+      FROM 
+          mentor_feedback
+      WHERE 
+          mentor_email = ? AND language = ?;
+  `;
+
+  db.query(query, [mentorEmail, language], (err, results) => {
+    if (err) {
+      console.error('Error fetching average rating for mentor by language:', err);
+      return res.status(500).send('Internal server error');
+    }
+
+    const avgRating = results[0].avg_rating === null ? 0 : results[0].avg_rating;
+
+    return res.send(`${avgRating}`);  // Send just the average rating as a plain number
+  });
+});
+ 
 
 
 module.exports = router;

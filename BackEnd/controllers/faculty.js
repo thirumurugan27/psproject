@@ -99,4 +99,41 @@ router.put("/update-status", (req, res) => {
   });
 });
 
+
+//to see mentor feedback and rating given by mentee(individual)
+router.get('/mentor-feedback/:mentor_email/:language', (req, res) => {
+  const mentorEmail = req.params.mentor_email;
+  const language = req.params.language;
+
+  const query = `
+      SELECT 
+          u.name AS name, 
+          u.email AS email, 
+          f.rating, 
+          f.feedback
+      FROM 
+          mentorr_feedback f
+      JOIN 
+          userdetails u ON f.mentee_email = u.email
+      WHERE 
+          f.mentor_email = ? AND f.language = ?;
+  `;
+
+  db.query(query, [mentorEmail, language], (err, results) => {
+    if (err) {
+      console.error('Error fetching feedback for mentor by language:', err);
+      return res.status(500).send('Internal server error');
+    }
+
+    // If no feedback found, return empty array
+    if (results.length === 0) {
+      return res.json([]);
+    }
+
+    // Return feedback and ratings as an array of objects
+    return res.json(results);
+  });
+});
+
+
 module.exports = router;
