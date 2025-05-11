@@ -10,6 +10,7 @@ import FileNotFound from '../pages/fileNotFound/fileNotFound'
 import NavMentor from '../pages/student/navMentor'
 import NavMentee from '../pages/student/navMentee'
 import Profile from '../pages/student/profile'
+import MentorReview from '../pages/faculty/mentorReview'
 
 function AppLayout() {
     
@@ -54,7 +55,10 @@ function AppLayout() {
                     </Protected_f>
         },
         {
-            
+            path:'/login/faculty/review',
+            element:<Protected_f>
+                    <MentorReview/>
+                    </Protected_f>
         }
     ])
     return (

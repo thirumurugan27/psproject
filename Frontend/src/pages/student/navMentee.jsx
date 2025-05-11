@@ -1,6 +1,9 @@
 import React from 'react'
 import Navbar from '../../components/navbar/navbar'
 
+const mentee_list = [
+  
+]
 function NavMentee() {
   return (
     <div className='flex w-full h-screen'>
@@ -10,7 +13,7 @@ function NavMentee() {
             PS Mentorship
         </header>
         <main className='p-6 overflow-y-auto bg-gray-100 flex-1 w-full h-full'>
-            <p className='text-[#5F6388] text-center'>No options</p>
+            <p className='text-[#5F6388] text-center text-lg'>No options</p>
         </main>
     </div>
     </div>

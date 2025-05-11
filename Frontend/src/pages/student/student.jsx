@@ -17,6 +17,7 @@ import networking from '../student/skills_img/networking.png'
 import python  from '../student/skills_img/python.png'
 import uiux  from '../student/skills_img/uiux.png'
 import Navbar from "../../components/navbar/navbar";
+import SkillsCard from "./skills_card";
 
 // Dummy course list with image paths (replace with actual paths or URLs)
 
@@ -91,46 +92,10 @@ return (
         <h2 className="text-xl font-medium mb-4 text-[#5F6388]">Courses Available</h2>
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
         {
-        !mentor_btn && courses.map((course, index) => (
-            <div key={index} className=" p-[15px] bg-white rounded-lg shadow-md overflow-hidden">
-              <img src={course.image} alt={course.title} className="h-[200px] w-full lg:w-full lg:h-[200px] object-cover rounded-sm"/>
-              <div className="p-3">
-                  <h2 className="text-lg lg:text-[18px] font-medium text-gray-700">{course.title} level- {course.level}</h2>
-              </div>
-
-              {/* mentor or mentee btn */}
-                {
-                course.level>=2?
-                <div className="flex w-full gap-2" on={()=>setMentor_btn(false)}>
-                    {!mentor_btn && 
-                    <>
-                      <div onClick={()=>setMentor_btn(true) } className="rounded-sm bg-emerald-700 text-white flex-1 text-center p-1 hover:cursor-pointer hover:bg-emerald-800">
-                          mentor
-                        </div>
-                        <div className="rounded-sm bg-blue-800 text-white flex-1 text-center p-1 hover:cursor-pointer hover:bg-blue-900">
-                          mentee
-                        </div>
-                    </>
-                      }
-                      {
-                        mentor_btn &&
-                      <>
-                          <div className="rounded-sm bg-emerald-700 text-white flex-1 text-center p-1">
-                            mentor
-                          </div>
-                          <div className={`rounded-sm ${mentor_request === "accepted" ? "bg-green-800":mentor_request === "rejected"?"bg-red-600":"bg-orange-400"} text-white flex-1 text-center p-1`}>
-                            <p>{mentor_request === "accepted" ? "ongoing":mentor_request === "rejected"?"rejected":"pending"}</p>
-                          </div>
-                      </>
-                      }
-                </div>
-                  :
-                <div className="rounded-sm bg-blue-800 text-white flex-1 text-center p-1 hover:cursor-pointer hover:bg-blue-900">
-                  mentee
-                </div>
-                }
-              </div>
-        ))}
+        courses.map((course, index) => (
+          <SkillsCard index={index} course={course}/>
+        ))
+        }
         </div>
     </main>
     </div>
