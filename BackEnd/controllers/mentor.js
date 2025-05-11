@@ -540,6 +540,85 @@ router.get('/feedback/:mentee_email/:language', (req, res) => {
   });
 });
 
+// to get level cleared by mentee
+router.get('/mentorshiprp/:mentorEmail', (req, res) => {
+  const mentorEmail = req.params.mentorEmail;
+
+  const query = `
+    SELECT 
+        s.mentee_email,
+        u.name AS mentee_name,
+        s.language,
+        s.level,
+        CASE s.level
+            WHEN 1 THEN l.l1rp*0.1
+            WHEN 2 THEN l.l2rp*0.1
+            WHEN 3 THEN l.l3rp*0.1
+            WHEN 4 THEN l.l4rp*0.1
+            WHEN 5 THEN l.l5rp*0.1
+            WHEN 6 THEN l.l6rp*0.1
+            WHEN 7 THEN l.l7rp*0.1
+        END AS level_rp
+    FROM 
+        slot s
+    JOIN 
+        userdetails u ON s.mentee_email = u.email
+    JOIN 
+        languages l ON s.language = l.language_name
+    WHERE 
+        s.mentor_email = ?
+        AND s.level_cleared = 'yes';
+  `;
+
+  db.query(query, [mentorEmail], (err, results) => {
+    if (err) {
+      console.error('Error fetching cleared mentees:', err);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    res.status(200).json({ mentees: results });
+  });
+});
+
+router.get('/ongoing-slots/:mentorEmail', (req, res) => {
+  const mentorEmail = req.params.mentorEmail;
+
+  const query = `
+    SELECT 
+        s.*, 
+        u.name AS mentee_name
+    FROM 
+        slot s
+    JOIN 
+        userdetails u ON s.mentee_email = u.email
+    WHERE 
+        s.mentor_email = ?
+        AND s.status = 'ongoing';
+  `;
+
+  db.query(query, [mentorEmail], (err, results) => {
+    if (err) {
+      console.error('Error fetching ongoing slots:', err);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    // Format date to dd-mm-yyyy
+    const formattedResults = results.map(slot => {
+      const dateObj = new Date(slot.date);
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const year = dateObj.getFullYear();
+      return {
+        ...slot,
+        date: `${day}-${month}-${year}`
+      };
+    });
+
+    res.status(200).json({ slots: formattedResults });
+  });
+});
+
+
 
 
 module.exports = router;
