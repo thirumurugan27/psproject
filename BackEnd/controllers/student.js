@@ -112,7 +112,87 @@ router.get("/levels/:email", (req, res) => {
     });
   });
 });
+//return
+// {
+//    "mentor": [ {
+//            "language_name": "Java",
+//             "level": 6,
+//              "status": "ongoing",
+//               "start_date": "04-05-2025",
+//              "end_date": "10-05-2025"
+//         }],
 
+
+//        "mentee": [
+//          {
+//             "language_name": "Java",
+//            "mentee_level": 1,
+//            "mentor_level": 6,
+//            "mentor_email": "gowthamj.al24@bitsathy.ac.in",
+//            "mentor_name": "Gowtham J",
+//            "start_date": "04-05-2025",
+//            "end_date": "10-05-2025",
+//            "status": "ongoing"
+//        }
+//      ],
+
+
+//         
+//    "mentorrequest": [
+//      {
+//     "language_name": "Java",
+//     "level": 6,
+//     "status": "pending",
+//     "request_date": "10-05-2025"
+//      }
+//      ],
+
+  // "menteerequest": [
+  //   {
+  //     "language_name": "Java",
+  //     "mentee_level": 1,
+  //     "request_date": "09-05-2025",
+  //     "status": "pending",
+  //     "mentor_email": "gowthamj.al24@bitsathy.ac.in",
+  //     "mentor_name": "Gowtham J"
+  //   }
+  // ],
+
+//           "levels": [
+//             {
+//               "language_name": "C",
+//               "level": 2
+//             },
+//             {
+//               "language_name": "C++",
+//               "level": 2
+//             },
+//             {
+//               "language_name": "Data Structure",
+//               "level": 0
+//             },
+//             {
+//               "language_name": "Java",
+//               "level": 6
+//             },
+//             {
+//               "language_name": "Machine Learning",
+//               "level": 0
+//             },
+//             {
+//               "language_name": "Networking",
+//               "level": 0
+//             },
+//             {
+//               "language_name": "Python",
+//               "level": 6
+//             },
+//             {
+//               "language_name": "UI/UX",
+//               "level": 0
+//             }
+//           ]
+// }
 
 // Route to get attempts with levels (level1, level2, ... level7) for a given student and language
 router.get('/getattempts', (req, res) => {
