@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Navbar from '../../components/navbar/navbar';
 import profilePic from '../../assets/userPS.png'; 
-
+import axios from 'axios';
 function Profile() {
 const user = {
 name: 'Gowtham',
@@ -9,6 +9,16 @@ email: 'gowthamj.al24@bitsathy.ac.in',
 points: 1200,
 };
 
+
+useEffect(()=>{
+    async function GetRP() {
+        try{
+            const response = await axios.get('http://localhost:5000/student/getattempts',{params: {email: email,language: language}})
+        }
+        catch(err)
+        {console.log(err);}
+    }
+},[])
 return (
 <div className='flex w-full h-screen bg-gray-100'>
     <Navbar />

@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Menu,X } from "lucide-react";
 import { useState } from "react";
-import ps from '../../assets/ps.png'
+import axios from "axios";
 
 import mentor from '../../assets/help.png'
 import mentee from '../../assets/mentee.png'
@@ -77,6 +77,20 @@ function Courses() {
   const [mentee_btn ,setMentee_btn] = useState(false);
   const [mentee_request,set_mentee_request] = useState("pending");
 
+  useEffect(()=>{
+    async function GetAllSkill() {
+      try{
+        const response = await axios.get(`http://localhost:5000/student/levels/${localStorage.getItem("email")}`)
+        console.log("response: ",response.data);
+      }
+      catch (err)
+      {
+        console.error(err);
+      }
+    }
+    GetAllSkill();
+
+  },[])
 
 return (
 <div className="flex h-screen w-full">
