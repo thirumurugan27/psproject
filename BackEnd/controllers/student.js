@@ -147,16 +147,16 @@ router.get("/levels/:email", (req, res) => {
 //      }
 //      ],
 
-  // "menteerequest": [
-  //   {
-  //     "language_name": "Java",
-  //     "mentee_level": 1,
-  //     "request_date": "09-05-2025",
-  //     "status": "pending",
-  //     "mentor_email": "gowthamj.al24@bitsathy.ac.in",
-  //     "mentor_name": "Gowtham J"
-  //   }
-  // ],
+// "menteerequest": [
+//   {
+//     "language_name": "Java",
+//     "mentee_level": 1,
+//     "request_date": "09-05-2025",
+//     "status": "pending",
+//     "mentor_email": "gowthamj.al24@bitsathy.ac.in",
+//     "mentor_name": "Gowtham J"
+//   }
+// ],
 
 //           "levels": [
 //             {
@@ -195,6 +195,8 @@ router.get("/levels/:email", (req, res) => {
 // }
 
 // Route to get attempts with levels (level1, level2, ... level7) for a given student and language
+
+
 router.get('/getattempts', (req, res) => {
   let { email, language } = req.query;
 
@@ -236,6 +238,19 @@ router.get('/getattempts', (req, res) => {
       level6: levelData.level6,
       level7: levelData.level7
     });
+    //return format
+    //   {
+    //     "email": "student1.al24@bitsathy.ac.in",
+    //      "language": "C",
+    //      "completedLevel": 3,
+    //      "level1": 2,
+    //       "level2": 5,
+    //       "level3": 3,
+    //       "level4": 5,
+    //        "level5": 0,
+    //        "level6": 0,
+    //        "level7": 0
+    // }
   });
 });
 
@@ -270,6 +285,12 @@ router.get('/rp/:email', (req, res) => {
       normal_rp: normalRP,
       mentorship_rp: mentorshipRP
     });
+    //return
+    // {
+    //   "student_email": "thirumurugank.al24@bitsathy.ac.in",
+    //   "normal_rp": "10800",
+    //   "mentorship_rp": "0"
+    // }
   });
 });
 
