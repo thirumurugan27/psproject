@@ -10,7 +10,7 @@ const { runExpireFunctions } = require("./controllers/autoupdatestatus");
 app.use(express.json());
 app.use(cors());
 
-const authRoutes=require("./Routes/auth");
+const authRoutes=require("./Routes/login");
 const studentRoutes = require("./controllers/student");
 const facultyRoutes = require("./controllers/faculty");
 const mentorRoutes = require("./controllers/mentor");
