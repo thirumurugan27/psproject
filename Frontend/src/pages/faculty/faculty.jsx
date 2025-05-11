@@ -201,7 +201,7 @@ return (
     <h1 className="flex text-[#727272] text-lg  ">Level: <span><h1 className="pl-2 text-black  ">{Rej_Level}</h1></span></h1>
     <hr className="mt-2 text-[#727272]"/>
     <h1 className="mt-3 text-[#727272] text-lg">Reason</h1>
-    <textarea className="w-full h-[150px] bg-[#EEF1F9] border-none focus:outline-none p-2" placeholder="Enter feedback" onChange={(e)=>setFeedBack(e)}/>
+    <textarea className="w-full h-[150px] bg-[#EEF1F9] border-none focus:outline-none p-2" placeholder="Enter reason" onChange={(e)=>setFeedBack(e)}/>
         {warning && <p className="text-center text-red-500">Feedback can't be empty</p>}
     <div className="bg-[#8A64F7] text-center p-2 rounded-sm text-white mt-2 hover:cursor-pointer hover:bg-[#744FE1]" onClick={()=> {feedBack.length !==0 && HandleReject() , feedBack.length!==0 && setRejectPopup(false), feedBack.length===0 && setWarning(true)}}>Submit</div>
 </div>
