@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db");
 const moment = require('moment');
+const { format } = require("mysql2");
 
 // Student can send request to faculty for mentorship
 router.post("/send-request", (req, res) => {
@@ -89,6 +90,7 @@ router.get("/mentees-requests/:mentor_email", (req, res) => {
   const query = `
     SELECT 
       mr.student_email, 
+      mr.id AS request_id,
       u.name AS student_name, 
       mr.language_name, 
       sl.level,
@@ -125,6 +127,21 @@ router.get("/mentees-requests/:mentor_email", (req, res) => {
     }
 
     res.json({requests });
+  //   return format
+  //   {
+  //     "requests": [
+  //       {
+  //         "student_email": "student2.al24@bitsathy.ac.in",
+  //         "request_id": 5,
+  //         "student_name": "student2",
+  //         "language_name": "C",
+  //         "level": 4,
+  //         "request_date": "11-05-2025",
+  //         "status": "pending"
+  //       }
+  //     ]
+  // }
+
   });
 });
 
@@ -530,6 +547,7 @@ router.get('/feedback/:mentee_email/:language', (req, res) => {
   });
 });
 
+
 // to get level cleared by mentee
 router.get('/mentorshiprp/:mentorEmail', (req, res) => {
   const mentorEmail = req.params.mentorEmail;
@@ -567,8 +585,21 @@ router.get('/mentorshiprp/:mentorEmail', (req, res) => {
     }
 
     res.status(200).json({ mentees: results });
+    //return
+  //   {
+  //     "mentees": [
+  //       {
+  //         "mentee_email": "student1.al24@bitsathy.ac.in",
+  //         "mentee_name": "student1",
+  //         "language": "Java",
+  //         "level": 1,
+  //         "level_rp": "30.0"
+  //       }
+  //     ]
+  // }
   });
 });
+
 
 router.get('/ongoing-slots/:mentorEmail', (req, res) => {
   const mentorEmail = req.params.mentorEmail;

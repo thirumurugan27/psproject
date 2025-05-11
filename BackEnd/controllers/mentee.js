@@ -6,7 +6,6 @@ const db = require("../db");
 router.get("/mentors/:student_email", (req, res) => {
   const student_email = req.params.student_email;
 
-  // Check if student is already mentor, mentee, or has pending mentor request
   const checkSql = `
     SELECT student_email AS email FROM mentors WHERE student_email = ?
     UNION
@@ -15,72 +14,62 @@ router.get("/mentors/:student_email", (req, res) => {
     SELECT student_email AS email FROM mentor_requests WHERE student_email = ? AND status = 'pending'
   `;
 
-  db.query(
-    checkSql,
-    [student_email, student_email, student_email],
-    (err0, existing) => {
-      if (err0) return res.status(500).json({ error: "Check error" });
+  db.query(checkSql, [student_email, student_email, student_email], (err0, existing) => {
+    if (err0) return res.status(500).json({ error: "Check error" });
 
-      if (existing.length > 0) {
-        // Student is already a mentor, mentee, or has pending mentor request
-        return res.status(200).json([]);
-      }
-
-      // Get student levels
-      db.query(
-        "SELECT * FROM student_levels WHERE student_email = ?",
-        [student_email],
-        (err1, levels) => {
-          if (err1) return res.status(500).json({ error: "Level fetch error" });
-
-          const studentLevels = {};
-          levels.forEach((row) => {
-            studentLevels[row.language_name] = row.level;
-          });
-
-          // Get mentors and their mentee counts
-          const sql = `
-          SELECT 
-            m.student_email AS mentor_email, 
-            u.name AS mentor_name, 
-            m.language_name, 
-            sl.level AS mentor_level,
-            COUNT(me.mentee_email) AS mentee_count
-          FROM mentors m
-          JOIN userdetails u ON u.email = m.student_email
-          JOIN student_levels sl ON sl.student_email = m.student_email AND sl.language_name = m.language_name
-          LEFT JOIN mentees me ON me.mentor_email = m.student_email 
-            AND me.language_name = m.language_name 
-            AND me.status = 'ongoing'
-          GROUP BY m.student_email, m.language_name
-        `;
-
-          db.query(sql, (err2, mentors) => {
-            if (err2)
-              return res.status(500).json({ error: "Mentor fetch error" });
-
-            const filtered = mentors
-              .filter((m) => {
-                const studentLevel = studentLevels[m.language_name] || 0;
-                return (
-                  m.mentor_email !== student_email &&
-                  m.mentor_level >= studentLevel + 2 &&
-                  m.mentee_count < 10
-                );
-              })
-              .map((m) => ({
-                mentor_name: m.mentor_name,
-                language_name: m.language_name,
-                mentor_level: m.mentor_level,
-                mentor_email: m.mentor_email,
-              }));
-
-            res.json(filtered);
-          });
-        }
-      );
+    if (existing.length > 0) {
+      return res.status(200).json([]); // Already a mentor/mentee or has pending request
     }
-  );
+
+    db.query("SELECT * FROM student_levels WHERE student_email = ?", [student_email], (err1, levels) => {
+      if (err1) return res.status(500).json({ error: "Level fetch error" });
+
+      const studentLevels = {};
+      levels.forEach((row) => {
+        studentLevels[row.language_name] = row.level;
+      });
+
+      const sql = `
+        SELECT 
+          m.student_email AS mentor_email, 
+          u.name AS mentor_name, 
+          m.language_name, 
+          sl.level AS mentor_level,
+          COUNT(me.mentee_email) AS mentee_count
+        FROM mentors m
+        JOIN userdetails u ON u.email = m.student_email
+        JOIN student_levels sl ON sl.student_email = m.student_email AND sl.language_name = m.language_name
+        LEFT JOIN mentees me ON me.mentor_email = m.student_email 
+          AND me.language_name = m.language_name 
+          AND me.status = 'ongoing'
+        WHERE m.status = 'ongoing'
+        GROUP BY m.student_email, m.language_name
+      `;
+
+      db.query(sql, (err2, mentors) => {
+        if (err2) return res.status(500).json({ error: "Mentor fetch error" });
+
+        const filtered = mentors
+          .filter((m) => {
+            const studentLevel = studentLevels[m.language_name] || 0;
+            return (
+              m.mentor_email !== student_email &&
+              m.mentor_level >= 2 &&
+              m.mentor_level >= studentLevel + 2 &&
+              m.mentee_count < 10
+            );
+          })
+          .map((m) => ({
+            mentor_name: m.mentor_name,
+            language_name: m.language_name,
+            mentor_level: m.mentor_level,
+            mentor_email: m.mentor_email,
+          }));
+
+        res.json(filtered);
+      });
+    });
+  });
 });
 
 
