@@ -7,45 +7,36 @@ const moment = require('moment');
 router.post("/send-request", (req, res) => {
   const { student_email, language_name } = req.body;
 
-  db.query(
-    "SELECT * FROM mentor_requests WHERE student_email = ? AND language_name = ?",
-    [student_email, language_name],
-    (err, result) => {
-      if (err) return res.status(500).json({ error: "Database error" });
+  const query = `
+    SELECT * FROM mentor_requests 
+    WHERE student_email = ? 
+    AND language_name = ? 
+    AND status IN ('pending', 'approved')
+  `;
 
-      if (result.length > 0) {
-        const requestStatus = result[0].status; // Assuming you have a 'status' column like 'pending', 'approved', 'rejected'
+  db.query(query, [student_email, language_name], (err, result) => {
+    if (err) return res.status(500).json({ error: "Database error" });
 
-        if (requestStatus === "pending") {
-          return res
-            .status(200)
-            .json({ message: "Previous request is pending" });
-        } else if (requestStatus === "approved") {
-          return res
-            .status(200)
-            .json({ message: "Already approved as mentor" });
-        } else if (requestStatus === "rejected") {
-          // If rejected, allow re-request after some time maybe?
-          return res.status(200).json({
-            message:
-              "Previous request was rejected. Please wait before reapplying.",
-          });
-        } else {
-          return res.status(200).json({ message: "Unknown request status" });
-        }
+    if (result.length > 0) {
+      const requestStatus = result[0].status;
+
+      if (requestStatus === "pending") {
+        return res.status(200).json({ message: "Previous request is pending" });
+      } else if (requestStatus === "approved") {
+        return res.status(200).json({ message: "Already approved as mentor" });
       }
-
-      // No previous request found -> Insert new request
-      db.query(
-        "INSERT INTO mentor_requests (student_email, language_name, status, request_date) VALUES (?, ?, 'pending', NOW())",
-        [student_email, language_name],
-        (err2) => {
-          if (err2) return res.status(500).json({ error: "Insert error" });
-          res.json({ message: "Request submitted successfully" });
-        }
-      );
     }
-  );
+
+    // No pending or approved request → allow new request
+    db.query(
+      "INSERT INTO mentor_requests (student_email, language_name, status, request_date) VALUES (?, ?, 'pending', NOW())",
+      [student_email, language_name],
+      (err2) => {
+        if (err2) return res.status(500).json({ error: "Insert error" });
+        res.json({ message: "Request submitted successfully" });
+      }
+    );
+  });
 });
 
 

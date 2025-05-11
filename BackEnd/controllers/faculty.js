@@ -24,12 +24,16 @@ router.get("/requests", (req, res) => {
       return res.status(500).json({ message: "Database error" });
     }
     res.status(200).json(results);
-    // only pending requests are fetched
-    //"request_id": 5,
-    //"student_name": "student2",
-    //"student_email": "student2.al24@bitsathy.ac.in",
-    //"language_name": "C",
-    //"level": 4
+  // only pending requests are fetched
+  //   [
+  //     {
+  //       "request_id": 60,
+  //       "student_name": "Thirumurugan K",
+  //       "student_email": "thirumurugank.al24@bitsathy.ac.in",
+  //       "language_name": "C",
+  //       "level": 6
+  //     }
+  // ]
   });
 });
 
@@ -98,7 +102,6 @@ router.put("/update-status", (req, res) => {
     });
   });
 });
-
 
 //to see mentor feedback and rating given by mentee(individual)
 router.get('/mentor-feedback/:mentor_email/:language', (req, res) => {
