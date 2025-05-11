@@ -482,34 +482,6 @@ router.post('/feedback', (req, res) => {
 });
 
 
-// To get the AVERAGE rating of a mentor
-router.get('/avg-rating/:mentor_email/:language', (req, res) => {
-  const mentorEmail = req.params.mentor_email;
-  const language = req.params.language;
-
-  const query = `
-      SELECT 
-          AVG(rating) AS avg_rating
-      FROM 
-          mentor_feedback
-      WHERE 
-          mentor_email = ? AND language_name = ?;
-  `;
-
-  db.query(query, [mentorEmail, language], (err, results) => {
-    if (err) {
-      console.error('Error fetching average rating for mentor by language:', err);
-      return res.status(500).send('Internal server error');
-    }
-
-    const avgRating = results[0].avg_rating === null ? 0 : Math.floor(results[0].avg_rating);
-
-
-    return res.send(`${avgRating}`);  // Send just the average rating as a plain number
-  });
-});
- 
-
 // To get the feedback of a mentee given by previous mentor
 router.get('/feedback/:mentee_email/:language', (req, res) => {
   const menteeEmail = req.params.mentee_email;
