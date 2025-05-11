@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../db");
+
+
 // Function to expire old mentor requests
 function expireOldMentorRequests() {
     const query = `
@@ -16,6 +18,7 @@ function expireOldMentorRequests() {
         }
     });
 }
+
 
 // Function to expire old mentee requests
 function expireOldMenteeRequests() {
@@ -33,6 +36,8 @@ function expireOldMenteeRequests() {
     });
 }
 
+
+
 function expireOldMentors() {
     const query = `
         UPDATE mentors
@@ -45,6 +50,8 @@ function expireOldMentors() {
         else console.log(`✅ ${results.affectedRows} mentorships expired.`);
     });
 }
+
+
 
 // Expire mentees
 function expireOldMentees() {
@@ -59,6 +66,8 @@ function expireOldMentees() {
         else console.log(`✅ ${results.affectedRows} mentee relationships expired.`);
     });
 }
+
+
 // Function to expire slot statuses based on current date and time
 function expireSlotStatus() {
     const query = `
@@ -84,7 +93,7 @@ function expireSlotStatus() {
                   WHEN latest_m.status = 'expired' THEN 'expired'
                   ELSE s.status
                 END
-    WHERE s.status = 'ongoing';
+    WHERE s.status = 'ongoing' AND s.level_cleared='ongoing';
   `;
 
     db.query(query, (err, results) => {
@@ -95,6 +104,8 @@ function expireSlotStatus() {
         }
     });
 }
+
+
 
 // Function to run all expiration tasks
 function runExpireFunctions() {

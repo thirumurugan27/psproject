@@ -24,7 +24,7 @@ app.use("/mentee", menteeRoutes);
 app.use("/student", studentRoutes);
 
 
-//runExpireFunctions();
+runExpireFunctions();
 app.listen(PORT, () =>
   console.log(`🚀server running successfully on http://localhost:${PORT}`)
 );

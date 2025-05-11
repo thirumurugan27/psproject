@@ -335,6 +335,9 @@ router.get("/menteeslist/:mentor_email", (req, res) => {
   });
 });
 
+
+
+
 // Helper function for date formatting
 function formatDate(dateString) {
   const date = new Date(dateString);
@@ -344,9 +347,12 @@ function formatDate(dateString) {
   return `${day}-${month}-${year}`;
 }
 
+
+
+
 //💻🧑‍💻SLOT book to menteee
 router.post('/slot', (req, res) => {
-  const { mentor_email, mentee_email, language, start_time } = req.body;
+  const { mentor_email, mentee_email, language_name, start_time } = req.body;
 
   // Get current date and determine booking date
   let today = moment();
@@ -369,7 +375,7 @@ router.post('/slot', (req, res) => {
       SELECT level FROM student_levels WHERE student_email = ? AND language_name = ?
   `;
 
-  db.query(getMenteeLevelQuery, [mentee_email, language], (err, result) => {
+  db.query(getMenteeLevelQuery, [mentee_email, language_name], (err, result) => {
     if (err) {
       console.error("Error fetching mentee level:", err);
       return res.status(500).json({ error: 'Database fetch failed' });
@@ -392,7 +398,7 @@ router.post('/slot', (req, res) => {
           WHERE student_email = ? AND language_name = ?
       `;
 
-    db.query(updateAttemptsQuery, [mentee_email, language], (err, result) => {
+    db.query(updateAttemptsQuery, [mentee_email, language_name], (err, result) => {
       if (err) {
         console.error("Error updating attempts count:", err);
         return res.status(500).json({ error: 'Failed to update attempts count' });
@@ -430,7 +436,7 @@ router.post('/slot', (req, res) => {
         db.query(insertSlotQuery, [
           mentor_email,
           mentee_email,
-          language,
+          language_name,
           newLevel,
           randomVenue,  // Use the randomly selected venue
           sqlDate,
