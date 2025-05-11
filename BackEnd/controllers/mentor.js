@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../db");
-
+const moment = require('moment');
 
 // Student can send request to faculty for mentorship
 router.post("/send-request", (req, res) => {
@@ -26,12 +26,10 @@ router.post("/send-request", (req, res) => {
             .json({ message: "Already approved as mentor" });
         } else if (requestStatus === "rejected") {
           // If rejected, allow re-request after some time maybe?
-          return res
-            .status(200)
-            .json({
-              message:
-                "Previous request was rejected. Please wait before reapplying.",
-            });
+          return res.status(200).json({
+            message:
+              "Previous request was rejected. Please wait before reapplying.",
+          });
         } else {
           return res.status(200).json({ message: "Unknown request status" });
         }
@@ -49,6 +47,8 @@ router.post("/send-request", (req, res) => {
     }
   );
 });
+
+
 //mentor request changed by faculty
 //To see the ststus of request
 router.get("/request-status/:email", (req, res) => {
@@ -89,27 +89,38 @@ router.get("/request-status/:email", (req, res) => {
   });
 });
 
+
 // To see the mentee requests for a mentor
 // GET /api/mentor/requests/:mentor_email
 router.get("/mentees-requests/:mentor_email", (req, res) => {
   const { mentor_email } = req.params;
 
   const query = `
-        SELECT 
-            mr.student_email, 
-            u.name AS student_name, 
-            mr.language_name, 
-            sl.level,
-            DATE_FORMAT(mr.request_date, '%d-%m-%Y') AS request_date,
-            mr.status
-        FROM mentee_requests mr
-        JOIN userdetails u ON mr.student_email = u.email
-        JOIN student_levels sl 
-          ON sl.student_email = mr.student_email 
-         AND sl.language_name = mr.language_name
-        WHERE mr.mentor_email = ? AND mr.status = 'pending'
-        ORDER BY mr.request_date ASC
-    `;
+    SELECT 
+      mr.student_email, 
+      u.name AS student_name, 
+      mr.language_name, 
+      sl.level,
+      DATE_FORMAT(mr.request_date, '%d-%m-%Y') AS request_date,
+      mr.status
+    FROM mentee_requests mr
+    JOIN userdetails u ON mr.student_email = u.email
+    JOIN student_levels sl 
+      ON sl.student_email = mr.student_email 
+     AND sl.language_name = mr.language_name
+    WHERE 
+      mr.mentor_email = ? 
+      AND mr.status = 'pending'
+      AND NOT EXISTS (
+        SELECT 1 
+        FROM mentor_feedback mf
+        WHERE 
+          mf.mentor_email = mr.mentor_email
+          AND mf.mentee_email = mr.student_email
+          AND mf.language_name = mr.language_name
+      )
+    ORDER BY mr.request_date ASC
+  `;
 
   db.query(query, [mentor_email], (err, requests) => {
     if (err) {
@@ -119,28 +130,15 @@ router.get("/mentees-requests/:mentor_email", (req, res) => {
     if (requests.length === 0) {
       return res
         .status(404)
-        .json({ message: "No pending mentee requests found" });
+        .json({});
     }
 
-    res.json({ pending_requests: requests });
-    // Response structure will look like:
-    // {
-    //   "pending_requests": [
-    //     {
-    //       "student_email": "student1.al24@bitsathy.ac.in",
-    //       "student_name": "student1",
-    //       "language_name": "Java",
-    //       "level": 0,
-    //       "request_date": "09-05-2025",
-    //       "status": "pending"
-    //     }
-    //   ]
-    // }
+    res.json({requests });
   });
 });
 
 
-//To accept and reject the request
+//To accept and reject the request(Note use DELETE method to delete the request NEXT to This code)
 router.post("/update-request", (req, res) => {
   const {
     student_email,
@@ -174,57 +172,48 @@ router.post("/update-request", (req, res) => {
         }
 
         if (status === "accepted") {
-          // Check mentor's current mentees in that language
+          // Step 1: Update status to 'accepted' for the selected mentor
           db.query(
-            'SELECT COUNT(*) AS count FROM mentees WHERE mentor_email = ? AND language_name = ? AND status = "ongoing"',
-            [mentor_email, language_name],
-            (err, countRes) => {
+            'UPDATE mentee_requests SET status = "accepted" WHERE student_email = ? AND mentor_email = ? AND language_name = ?',
+            [student_email, mentor_email, language_name],
+            (err) => {
               if (err) {
                 return res.status(500).json({ error: err.message });
               }
 
-              if (countRes[0].count >= 10) {
-                return res.status(400).json({
-                  message: "Mentor already has 10 mentees in this language",
-                });
-              }
-
-              // Accept the request and update status
+              // Step 2: Get mentor's start and end dates
               db.query(
-                'UPDATE mentee_requests SET status = "accepted" WHERE student_email = ? AND mentor_email = ? AND language_name = ?',
-                [student_email, mentor_email, language_name],
-                (err) => {
+                'SELECT start_date, end_date FROM mentors WHERE student_email = ? AND language_name = ? AND status = "ongoing"',
+                [mentor_email, language_name],
+                (err, dateResult) => {
                   if (err) {
                     return res.status(500).json({ error: err.message });
                   }
 
-                  // ✅ Fetch mentor's mentorship dates
+                  if (dateResult.length === 0) {
+                    return res.status(400).json({
+                      message: "Mentor's mentorship dates not found.",
+                    });
+                  }
+
+                  const { start_date, end_date } = dateResult[0];
+
+                  // Step 3: Insert into mentees table
                   db.query(
-                    'SELECT start_date, end_date FROM mentors WHERE student_email = ? AND language_name = ? AND status = "ongoing"',
-                    [mentor_email, language_name],
-                    (err, mentorRows) => {
+                    'INSERT INTO mentees (mentor_email, mentee_email, language_name, start_date, end_date, status) VALUES (?, ?, ?, ?, ?, "ongoing")',
+                    [mentor_email, student_email, language_name, start_date, end_date],
+                    (err) => {
                       if (err) {
                         return res.status(500).json({ error: err.message });
                       }
 
-                      if (mentorRows.length === 0) {
-                        return res
-                          .status(404)
-                          .json({ message: "Mentor record not found" });
-                      }
-
-                      const { start_date, end_date } = mentorRows[0];
-
-                      // ✅ Insert mentee record with mentor's mentorship dates
+                      // Step 4: Update all other mentee requests to status = 'delete'
                       db.query(
-                        'INSERT INTO mentees (mentor_email, mentee_email, language_name, start_date, end_date, status) VALUES (?, ?, ?, ?, ?, "ongoing")',
-                        [
-                          mentor_email,
-                          student_email,
-                          language_name,
-                          start_date,
-                          end_date,
-                        ],
+                        `UPDATE mentee_requests 
+                         SET status = "delete" 
+                         WHERE student_email = ? 
+                           AND status = "pending"`,
+                        [student_email],
                         (err) => {
                           if (err) {
                             return res.status(500).json({ error: err.message });
@@ -232,7 +221,7 @@ router.post("/update-request", (req, res) => {
 
                           return res.json({
                             message:
-                              "Mentee request accepted and added to mentees list (dates matched with mentor)",
+                              "Mentee request accepted. Mentee added and other mentor requests marked as deleted.",
                           });
                         }
                       );
@@ -242,7 +231,11 @@ router.post("/update-request", (req, res) => {
               );
             }
           );
-        } else if (status === "rejected") {
+        }
+        
+        
+        
+         else if (status === "rejected") {
           // Reject with reason
           db.query(
             'UPDATE mentee_requests SET status = "rejected", rejection_reason = ? WHERE student_email = ? AND mentor_email = ? AND language_name = ?',
@@ -273,6 +266,20 @@ router.post("/update-request", (req, res) => {
 });
 
 
+//after accepting the request, delete the request
+router.delete("/delete", (req, res) => {
+  const query = `DELETE FROM mentee_requests WHERE status = 'delete'`;
+
+  db.query(query, (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: "Failed to delete entries", details: err.message });
+    }
+
+    return res.json({
+      message: `${result.affectedRows} request(s) with status 'delete' removed successfully.`,
+    });
+  });
+});
 
 //to see the all mentees
 router.get("/menteeslist/:mentor_email", (req, res) => {
@@ -329,6 +336,208 @@ function formatDate(dateString) {
   return `${day}-${month}-${year}`;
 }
 
+//💻🧑‍💻SLOT book to menteee
+router.post('/slot', (req, res) => {
+  const { mentor_email, mentee_email, language, start_time } = req.body;
+
+  // Get current date and determine booking date
+  let today = moment();
+  let bookingDate = moment(today).add(1, 'days');
+
+  // If tomorrow is Saturday (6) or Sunday (0), use today
+  if (bookingDate.day() === 6 || bookingDate.day() === 0) {
+    bookingDate = today;
+  }
+
+  // Format date as dd-mm-yyyy for display (store in db as YYYY-MM-DD)
+  const displayDate = bookingDate.format('DD-MM-YYYY');
+  const sqlDate = bookingDate.format('YYYY-MM-DD');
+
+  // Calculate end_time = start_time + 1hr
+  const end_time = moment(start_time, 'HH:mm:ss').add(1, 'hours').format('HH:mm:ss');
+
+  // Fetch current level of mentee
+  const getMenteeLevelQuery = `
+      SELECT level FROM student_levels WHERE student_email = ? AND language_name = ?
+  `;
+
+  db.query(getMenteeLevelQuery, [mentee_email, language], (err, result) => {
+    if (err) {
+      console.error("Error fetching mentee level:", err);
+      return res.status(500).json({ error: 'Database fetch failed' });
+    }
+
+    if (result.length === 0) {
+      return res.status(400).json({ error: 'Mentee level not found for the given language' });
+    }
+
+    // Get current level
+    const currentLevel = result[0].level;
+
+    // Determine the correct level attempt column (level1, level2, etc.)
+    const levelColumn = `level${currentLevel+1}`;
+
+    // Update attempt count for the corresponding level column (level1, level2, etc.)
+    const updateAttemptsQuery = `
+          UPDATE student_levels
+          SET ${levelColumn} = ${levelColumn} + 1
+          WHERE student_email = ? AND language_name = ?
+      `;
+
+    db.query(updateAttemptsQuery, [mentee_email, language], (err, result) => {
+      if (err) {
+        console.error("Error updating attempts count:", err);
+        return res.status(500).json({ error: 'Failed to update attempts count' });
+      }
+
+      // Increment level (level + 1) and insert the slot into the database
+      const newLevel = currentLevel + 1;
+
+      // Fetch a random venue from the slot_venue table
+      const getRandomVenueQuery = `SELECT venue FROM slot_venue ORDER BY RAND() LIMIT 1`;
+
+      db.query(getRandomVenueQuery, (err, venueResult) => {
+        if (err) {
+          console.error("Error fetching random venue:", err);
+          return res.status(500).json({ error: 'Failed to fetch random venue' });
+        }
+
+        // If no venue is found, return error
+        if (venueResult.length === 0) {
+          return res.status(400).json({ error: 'No venues available' });
+        }
+
+        const randomVenue = venueResult[0].venue;
+
+        // Insert the slot with the new level (level + 1) and the random venue
+        const insertSlotQuery = `
+              INSERT INTO slot (
+                  mentor_email, mentee_email, language, level,
+                  slot_venue, date, start_time, end_time
+              )
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `;
+
+        // Insert the slot with the new level and random venue
+        db.query(insertSlotQuery, [
+          mentor_email,
+          mentee_email,
+          language,
+          newLevel,
+          randomVenue,  // Use the randomly selected venue
+          sqlDate,
+          start_time,
+          end_time
+        ], (err, result) => {
+          if (err) {
+            console.error("Insert error:", err);
+            return res.status(500).json({ error: 'Database insert failed' });
+          }
+
+          res.json({
+            message: 'Slot booked successfully',
+            booking_date: displayDate,
+            start_time,
+            end_time,
+            level: newLevel,
+            venue: randomVenue  // Include venue in the response
+          });
+        });
+      });
+    });
+  });
+});
+
+
+//⭐⭐⭐⭐⭐ Feedback and Rating to mentee
+router.post('/feedback', (req, res) => {
+  const { mentee_email, mentor_email, language_name, rating, feedback } = req.body;
+
+  if (!mentee_email || !mentor_email || !language_name || !rating || !feedback ) {
+    return res.status(400).json({ error: 'All required fields must be provided' });
+  }
+
+  const query = `
+    INSERT INTO mentee_feedback 
+    (mentee_email, mentor_email, language_name, rating, feedback) 
+    VALUES (?, ?, ?, ?, ?)
+  `;
+
+  db.query(query, [mentee_email, mentor_email, language_name, rating, feedback], (err, result) => {
+    if (err) {
+      console.error('Error posting mentee feedback:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+
+    return res.status(200).json({ message: 'feedback to mentee by mentor submitted successfully' });
+  });
+});
+
+
+// To get the AVERAGE rating of a mentor
+router.get('/avg-rating/:mentor_email/:language', (req, res) => {
+  const mentorEmail = req.params.mentor_email;
+  const language = req.params.language;
+
+  const query = `
+      SELECT 
+          AVG(rating) AS avg_rating
+      FROM 
+          mentor_feedback
+      WHERE 
+          mentor_email = ? AND language_name = ?;
+  `;
+
+  db.query(query, [mentorEmail, language], (err, results) => {
+    if (err) {
+      console.error('Error fetching average rating for mentor by language:', err);
+      return res.status(500).send('Internal server error');
+    }
+
+    const avgRating = results[0].avg_rating === null ? 0 : Math.floor(results[0].avg_rating);
+
+
+    return res.send(`${avgRating}`);  // Send just the average rating as a plain number
+  });
+});
+ 
+// To get the feedback of a mentee given by previous mentor
+router.get('/feedback/:mentee_email/:language', (req, res) => {
+  const menteeEmail = req.params.mentee_email;
+  const language = req.params.language;
+
+  const query = `
+    SELECT 
+      u.name AS name, 
+      u.email AS email, 
+      f.rating, 
+      f.feedback
+    FROM 
+      mentee_feedback f
+    JOIN 
+      userdetails u ON f.mentor_email = u.email
+    WHERE 
+      f.mentee_email = ? AND f.language_name = ?;
+  `;
+
+  db.query(query, [menteeEmail, language], (err, results) => {
+    if (err) {
+      console.error('Error fetching feedback for mentee by language:', err);
+      return res.status(500).send({ error: 'Database error', details: err.message });
+    }
+
+    return res.json(results);
+    // returns
+    // [
+    //    {
+    //       "name": "Gowtham J",
+    //       "email": "gowthamj.al24@bitsathy.ac.in",
+    //       "rating": 5,
+    //       "feedback": "Good mentee"
+    //    }
+    // ]
+  });
+});
 
 
 

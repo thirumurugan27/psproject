@@ -3,14 +3,13 @@ const mysql = require("mysql2");
 
 const db = mysql.createConnection({
   host:
-    process.env.HOST ||
-    "byloav4iu7gfcn9ewblz - mysql.services.clever - cloud.com",
-  user: process.env.USER || "u1ohlprjubhmulje",
-  password: process.env.PASSWORD || "UyMiI2hxsGLrSKbphNcf",
-  database: process.env.NAME || "byloav4iu7gfcn9ewblz",
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
+    process.env.HOST,
+    user: process.env.USER ,
+    password: process.env.PASSWORD,
+    database: process.env.NAME,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
 });
 
 db.connect((err) => {

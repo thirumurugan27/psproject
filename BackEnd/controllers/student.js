@@ -2,23 +2,114 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db");
 
+//get student levels and mentor/mentee details
 router.get("/levels/:email", (req, res) => {
   const email = req.params.email;
 
-  const sql = `
-    SELECT language_name, level
-    FROM student_levels
-    WHERE student_email = ?
+  const result = {
+    mentor: [],
+    mentee: [],
+    mentorrequest: [],
+    menteerequest: [],
+    levels: []
+  };
+
+  const sqlLevels = `
+    SELECT language_name, level 
+    FROM student_levels 
+    WHERE student_email = ? 
+    ORDER BY language_name
   `;
 
-  db.query(sql, [email], (err, results) => {
-    if (err) {
-      return res
-        .status(500)
-        .json({ error: "Database error", details: err.message });
-    }
+  const sqlMentor = `
+    SELECT 
+      m.language_name,
+      sl.level,
+      m.status,
+      DATE_FORMAT(m.start_date, '%d-%m-%Y') AS start_date,
+      DATE_FORMAT(DATE_ADD(m.start_date, INTERVAL 6 DAY), '%d-%m-%Y') AS end_date
+    FROM mentors m
+    JOIN student_levels sl 
+      ON m.student_email = sl.student_email AND m.language_name = sl.language_name
+    WHERE m.student_email = ? AND m.status = 'ongoing'
+  `;
 
-    return res.status(200).json(results);
+  const sqlMentee = `
+    SELECT 
+      me.language_name,
+      sl.level AS mentee_level,
+      msl.level AS mentor_level,
+      me.mentor_email,
+      ud.name AS mentor_name,
+      DATE_FORMAT(me.start_date, '%d-%m-%Y') AS start_date,
+      DATE_FORMAT(DATE_ADD(me.start_date, INTERVAL 6 DAY), '%d-%m-%Y') AS end_date,
+      me.status
+    FROM mentees AS me
+    JOIN student_levels AS sl 
+      ON sl.student_email = me.mentee_email AND sl.language_name = me.language_name
+    JOIN student_levels AS msl 
+      ON msl.student_email = me.mentor_email AND msl.language_name = me.language_name
+    JOIN userdetails AS ud 
+      ON ud.email = me.mentor_email
+    WHERE me.status = 'ongoing' AND me.mentee_email = ?
+  `;
+
+  const sqlMentorRequest = `
+    SELECT 
+      mr.language_name, 
+      sl.level,  -- Join student_levels table to get the level
+      mr.status, 
+      DATE_FORMAT(mr.request_date, '%d-%m-%Y') AS request_date
+    FROM mentor_requests mr
+    JOIN student_levels sl 
+      ON mr.student_email = sl.student_email 
+      AND mr.language_name = sl.language_name
+    WHERE mr.student_email = ? 
+      AND DATEDIFF(CURDATE(), mr.request_date) < 6
+  `;
+
+  const sqlMenteeRequest = `
+    SELECT 
+      mr.language_name,
+      sl.level AS mentee_level,
+      DATE_FORMAT(mr.request_date, '%d-%m-%Y') AS request_date,
+      mr.status,
+      mr.mentor_email,
+      ud.name AS mentor_name
+    FROM mentee_requests mr
+    JOIN student_levels sl 
+      ON mr.student_email = sl.student_email AND mr.language_name = sl.language_name
+    JOIN userdetails ud 
+      ON mr.mentor_email = ud.email
+    WHERE mr.student_email = ? 
+      AND mr.status IN ('pending', 'rejected')
+  `;
+
+  db.query(sqlLevels, [email], (err, levels) => {
+    if (err) return res.status(500).json({ error: "Levels query error", details: err.message });
+    result.levels = levels;
+
+    db.query(sqlMentor, [email], (err, mentors) => {
+      if (err) return res.status(500).json({ error: "Mentor query error", details: err.message });
+      result.mentor = mentors;
+
+      db.query(sqlMentee, [email], (err, mentees) => {
+        if (err) return res.status(500).json({ error: "Mentee query error", details: err.message });
+        result.mentee = mentees;
+
+        db.query(sqlMentorRequest, [email], (err, mentorRequests) => {
+          if (err) return res.status(500).json({ error: "Mentor request query error", details: err.message });
+          result.mentorrequest = mentorRequests;
+
+          db.query(sqlMenteeRequest, [email], (err, menteeRequests) => {
+            if (err) return res.status(500).json({ error: "Mentee request query error", details: err.message });
+            result.menteerequest = menteeRequests;
+
+            return res.status(200).json(result);
+          });
+        });
+      });
+    });
   });
 });
 
@@ -64,6 +155,141 @@ router.get('/getattempts', (req, res) => {
       level5: levelData.level5,
       level6: levelData.level6,
       level7: levelData.level7
+    });
+  });
+});
+
+
+// 🪙🎖️🏆To GET RP 
+router.get('/rp/:email', (req, res) => {
+  const studentEmail = req.params.email;
+
+  if (!studentEmail) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  const query = `
+      SELECT 
+          SUM(normal_points) AS total_normal_points,
+          SUM(mentorship_points) AS total_mentorship_points
+      FROM reward_points
+      WHERE student_email = ?
+  `;
+
+  db.query(query, [studentEmail], (err, results) => {
+    if (err) {
+      console.error('Error fetching reward points:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+
+    const normalRP = results[0].total_normal_points || 0;
+    const mentorshipRP = results[0].total_mentorship_points || 0;
+
+    return res.json({
+      student_email: studentEmail,
+      normal_rp: normalRP,
+      mentorship_rp: mentorshipRP
+    });
+  });
+});
+
+
+//🎯📈 level cleared status
+router.put('/slot-level-update', (req, res) => {
+  const { slot_id, level_cleared } = req.body;
+
+  if (!slot_id || !['yes', 'no'].includes(level_cleared)) {
+    return res.status(400).json({ error: 'slot_id and valid level_cleared ("yes" or "no") are required.' });
+  }
+
+  const updateSlotQuery = `UPDATE slot SET level_cleared = ? WHERE id = ?`;
+
+  db.query(updateSlotQuery, [level_cleared, slot_id], (err, result) => {
+    if (err) {
+      console.error('Error updating slot:', err);
+      return res.status(500).json({ error: 'Failed to update slot.' });
+    }
+
+    if (level_cleared === 'no') {
+      return res.json({ message: 'Level not cleared. Slot updated.' });
+    }
+
+    // If level_cleared is "yes", continue to reward and level updates
+    const fetchSlotQuery = `
+      SELECT s.*, u.name as mentee_name
+      FROM slot s
+      JOIN userdetails u ON s.mentee_email = u.email
+      WHERE s.id = ?
+    `;
+
+    db.query(fetchSlotQuery, [slot_id], (err, results) => {
+      if (err || results.length === 0) {
+        console.error('Error fetching slot details:', err);
+        return res.status(500).json({ error: 'Failed to fetch slot details.' });
+      }
+
+      const slot = results[0];
+      const { mentor_email, mentee_email, language, level } = slot;
+
+      const levelRPColumn = `l${level}rp`;
+      const getRPQuery = `SELECT \`${levelRPColumn}\` AS level_rp FROM languages WHERE language_name = ?`;
+
+      db.query(getRPQuery, [language], (err, rpResults) => {
+        if (err || rpResults.length === 0) {
+          console.error('Error fetching reward points:', err);
+          return res.status(500).json({ error: 'Failed to fetch reward points.' });
+        }
+
+        const levelRP = rpResults[0].level_rp;
+        const mentorRP = Math.floor(levelRP * 0.10);
+        const menteeRP = levelRP - mentorRP;
+
+        // Update mentee level
+        const updateMenteeLevelQuery = `
+          UPDATE student_levels
+          SET level = ?
+          WHERE student_email = ? AND language_name = ?
+        `;
+
+        db.query(updateMenteeLevelQuery, [level, mentee_email, language], (err) => {
+          if (err) {
+            console.error('Error updating mentee level:', err);
+            return res.status(500).json({ error: 'Failed to update mentee level.' });
+          }
+
+          // Insert into reward_points table for mentor
+          const insertMentorRPQuery = `
+            INSERT INTO reward_points (student_email, mentor_email, mentee_email, language_name, level, mentorship_points)
+            VALUES (?, ?, ?, ?, ?, ?)
+          `;
+
+          db.query(insertMentorRPQuery, [mentor_email, mentor_email, mentee_email, language, level, mentorRP], (err) => {
+            if (err) {
+              console.error('Error inserting mentor RP:', err);
+              return res.status(500).json({ error: 'Failed to insert mentor reward points.' });
+            }
+
+            // Insert into reward_points table for mentee
+            const insertMenteeRPQuery = `
+              INSERT INTO reward_points (student_email, mentor_email, mentee_email, language_name, level, normal_points)
+              VALUES (?, ?, ?, ?, ?, ?)
+            `;
+
+            db.query(insertMenteeRPQuery, [mentee_email, mentor_email, mentee_email, language, level, menteeRP], (err) => {
+              if (err) {
+                console.error('Error inserting mentee RP:', err);
+                return res.status(500).json({ error: 'Failed to insert mentee reward points.' });
+              }
+
+              return res.json({
+                message: 'Level cleared. Slot, levels, and reward points updated.',
+                mentor_reward: mentorRP,
+                mentee_reward: menteeRP
+              });
+            });
+          });
+        });
+      });
     });
   });
 });

@@ -15,7 +15,7 @@ const navigate = useNavigate();
 const handlelogin = async (e) => {
 e.preventDefault();
 try {
-    const response = await axios.post("http://localhost:5000/user/login", {
+    const response = await axios.post("http://localhost:5000/auth/login", {
     email,
     password,
     });

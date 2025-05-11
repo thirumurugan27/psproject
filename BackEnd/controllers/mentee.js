@@ -2,8 +2,7 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db");
 
-
-
+//👩‍🏫👨‍🏫available mentors for a student 
 router.get("/mentors/:student_email", (req, res) => {
   const student_email = req.params.student_email;
 
@@ -84,7 +83,8 @@ router.get("/mentors/:student_email", (req, res) => {
   );
 });
 
-// POST mentee request to mentor
+
+// 📝📚👩‍🏫👨‍🏫POST mentee request to mentor
 router.post("/request", (req, res) => {
   const { student_email, mentor_email, language_name } = req.body;
 
@@ -126,7 +126,7 @@ router.post("/request", (req, res) => {
 });
 
 
-//to get mentor detail
+//🔍📋to get mentor detail
 router.get("/mentor-detail/:email", (req, res) => {
   const menteeEmail = req.params.email;
 
@@ -172,6 +172,7 @@ router.get("/mentor-detail/:email", (req, res) => {
   });
 });
 
+//🚫✋Dont touch this
 // Helper function for date formatting
 function formatDate(dateString) {
   const date = new Date(dateString);
@@ -180,5 +181,33 @@ function formatDate(dateString) {
   const year = date.getFullYear();
   return `${day}-${month}-${year}`;
 }
+
+
+//⭐⭐⭐⭐⭐ Feedback and Rating to mentor
+router.post('/feedback', (req, res) => {
+  const { mentor_email, mentee_email, language_name, rating, feedback } = req.body;
+
+  if (!mentor_email || !mentee_email || !language_name || !rating || !feedback) {
+    return res.status(400).json({ error: 'All required fields must be provided' });
+  }
+
+  const query = `
+    INSERT INTO mentor_feedback 
+    (mentor_email, mentee_email, language_name, rating, feedback) 
+    VALUES (?, ?, ?, ?, ?)
+  `;
+
+  db.query(query, [mentor_email, mentee_email, language_name, rating, feedback], (err, result) => {
+    if (err) {
+      console.error('Error posting mentor feedback:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+
+    return res.status(200).json({ message: 'feedback to mentor by mentee submitted successfully' });
+  });
+});
+
+
+
 
 module.exports = router;
