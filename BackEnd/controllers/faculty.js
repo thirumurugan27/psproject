@@ -37,6 +37,7 @@ router.get("/requests", (req, res) => {
   });
 });
 
+
 //faculty can approve or reject the request
 router.put("/update-status", (req, res) => {
   const { request_id, status, rejection_reason } = req.body;
@@ -102,6 +103,7 @@ router.put("/update-status", (req, res) => {
     });
   });
 });
+
 
 //to see mentor feedback and rating given by mentee(individual)
 router.get('/mentor-feedback/:mentor_email/:language', (req, res) => {

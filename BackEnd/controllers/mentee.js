@@ -3,8 +3,9 @@ const router = express.Router();
 const db = require("../db");
 
 //👩‍🏫👨‍🏫available mentors for a student 
-router.get("/mentors/:student_email", (req, res) => {
+router.get("/mentors/:student_email/:language_name", (req, res) => {
   const student_email = req.params.student_email;
+  const language_name = req.params.language_name;
 
   const checkSql = `
     SELECT student_email AS email FROM mentors WHERE student_email = ?
@@ -42,23 +43,22 @@ router.get("/mentors/:student_email", (req, res) => {
         LEFT JOIN mentees me ON me.mentor_email = m.student_email 
           AND me.language_name = m.language_name 
           AND me.status = 'ongoing'
-        WHERE m.status = 'ongoing'
+        WHERE m.status = 'ongoing' AND m.language_name = ?
         GROUP BY m.student_email, m.language_name
       `;
 
-      db.query(sql, (err2, mentors) => {
+      db.query(sql, [language_name], (err2, mentors) => {
         if (err2) return res.status(500).json({ error: "Mentor fetch error" });
 
+        const studentLevel = studentLevels[language_name] || 0;
+
         const filtered = mentors
-          .filter((m) => {
-            const studentLevel = studentLevels[m.language_name] || 0;
-            return (
-              m.mentor_email !== student_email &&
-              m.mentor_level >= 2 &&
-              m.mentor_level >= studentLevel + 2 &&
-              m.mentee_count < 10
-            );
-          })
+          .filter((m) =>
+            m.mentor_email !== student_email &&
+            m.mentor_level >= 2 &&
+            m.mentor_level >= studentLevel + 2 &&
+            m.mentee_count < 10
+          )
           .map((m) => ({
             mentor_name: m.mentor_name,
             language_name: m.language_name,
@@ -198,6 +198,25 @@ function formatDate(dateString) {
   const year = date.getFullYear();
   return `${day}-${month}-${year}`;
 }
+
+
+//Booked slot by mentor
+router.get("/slot/:mentee_email", (req, res) => {
+  const mentee_email = req.params.mentee_email;
+
+  const sql = `
+    SELECT * 
+    FROM slot 
+    WHERE mentee_email = ? 
+      AND level_cleared = 'ongoing' 
+      AND status = 'ongoing'
+  `;
+
+  db.query(sql, [mentee_email], (err, results) => {
+    if (err) return res.status(500).json({ error: "Slot fetch error" });
+    res.json(results);
+  });
+});
 
 
 //⭐⭐⭐⭐⭐ Feedback and Rating to mentor
