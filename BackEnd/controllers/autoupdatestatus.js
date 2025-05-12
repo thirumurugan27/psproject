@@ -8,7 +8,7 @@ function expireOldMentorRequests() {
     const query = `
     UPDATE mentor_requests
     SET status = 'expired'
-    WHERE status = 'pending' AND DATEDIFF(CURDATE(), request_date) >= 6  
+    WHERE status IN('pending','approved') AND DATEDIFF(CURDATE(), request_date) >= 6  
   `;
     db.query(query, (err, results) => {
         if (err) {
