@@ -304,7 +304,7 @@ router.get("/menteeslist/:mentor_email", (req, res) => {
     FROM mentees m
     JOIN userdetails u ON u.email = m.mentee_email
     JOIN student_levels sl ON sl.student_email = m.mentee_email AND sl.language_name = m.language_name
-    WHERE m.mentor_email = ? AND status='ongoing'
+    WHERE m.mentor_email = ? AND m.status='ongoing'
   `;
 
   db.query(sql, [mentor_email], (err, results) => {
