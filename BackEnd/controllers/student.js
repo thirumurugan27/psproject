@@ -17,7 +17,13 @@ router.get("/levels/:email", (req, res) => {
   const sqlLevels = `
     SELECT language_name, level 
     FROM student_levels 
-    WHERE student_email = ? 
+    WHERE student_email = ?
+      AND language_name NOT IN (
+        SELECT language_name 
+        FROM mentor_requests 
+        WHERE student_email = ? 
+          AND DATEDIFF(CURDATE(), request_date) <= 6
+      )
     ORDER BY language_name
   `;
 
@@ -58,7 +64,7 @@ router.get("/levels/:email", (req, res) => {
     SELECT 
       mr.language_name, 
       mr.rejection_reason,
-      sl.level,  -- Join student_levels table to get the level
+      sl.level,
       mr.status, 
       DATE_FORMAT(mr.request_date, '%d-%m-%Y') AS request_date
     FROM mentor_requests mr
@@ -87,7 +93,7 @@ router.get("/levels/:email", (req, res) => {
       AND DATEDIFF(CURDATE(), mr.request_date) < 6
   `;
 
-  db.query(sqlLevels, [email], (err, levels) => {
+  db.query(sqlLevels, [email, email], (err, levels) => {
     if (err) return res.status(500).json({ error: "Levels query error", details: err.message });
     result.levels = levels;
 
@@ -114,6 +120,7 @@ router.get("/levels/:email", (req, res) => {
     });
   });
 });
+
 //return
 // {
 //    "mentor": [ {
