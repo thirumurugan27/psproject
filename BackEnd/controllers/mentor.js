@@ -60,7 +60,7 @@ router.get("/request-status/:email", (req, res) => {
     JOIN student_levels sl 
       ON sl.student_email = mr.student_email 
       AND sl.language_name = mr.language_name
-    WHERE mr.student_email = ?
+    WHERE mr.student_email = ? AND DATEDIFF(CURDATE(), request_date) <= 6
     ORDER BY mr.request_date DESC
   `;
 
