@@ -2,7 +2,9 @@ require("dotenv").config();
 const moment = require('moment');
 const db=require("./db");
 const express = require("express");
-const app = express();
+const app = express({
+  allowedHeaders: ['Content-Type', 'Authorization']
+});
 const cors = require("cors");
 const PORT = process.env.PORT;
 const { runExpireFunctions } = require("./controllers/autoupdatestatus");
