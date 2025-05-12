@@ -14,6 +14,7 @@ router.get("/levels/:email", (req, res) => {
     levels: []
   };
 
+  // ✅ Updated to exclude only rejected mentor requests within the last 7 days
   const sqlLevels = `
     SELECT language_name, level 
     FROM student_levels 
@@ -22,6 +23,7 @@ router.get("/levels/:email", (req, res) => {
         SELECT language_name 
         FROM mentor_requests 
         WHERE student_email = ? 
+          AND status = 'rejected'
           AND DATEDIFF(CURDATE(), request_date) <= 6
       )
     ORDER BY language_name
@@ -120,6 +122,7 @@ router.get("/levels/:email", (req, res) => {
     });
   });
 });
+
 
 //return
 // {
