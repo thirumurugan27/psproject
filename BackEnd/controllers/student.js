@@ -81,6 +81,7 @@ router.get("/levels/:email", (req, res) => {
 
   const sqlMenteeRequest = `
   SELECT 
+    mr.id,
     mr.language_name,
     sl.level AS mentee_level,
     msl.level AS mentor_level,
@@ -155,6 +156,7 @@ router.get("/levels/:email", (req, res) => {
 //         
 //    "mentorrequest": [
 //      {
+//        "id": 60,
 //     "language_name": "Java",
 //     "level": 6,
 //     "status": "pending",
@@ -164,6 +166,7 @@ router.get("/levels/:email", (req, res) => {
 
 // "menteerequest": [
 //   {
+//     "id": 60,
 //     "language_name": "Java",
 //     "mentee_level": 1,
 //     "request_date": "09-05-2025",
