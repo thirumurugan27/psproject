@@ -479,34 +479,29 @@ router.get('/feedback/:mentee_email/:language', (req, res) => {
 
   const query = `
     SELECT 
-      u.name AS name, 
-      u.email AS email, 
+      u.name AS mentor_name, 
+      u.email AS mentor_email, 
       f.rating, 
-      f.feedback
+      f.feedback,
+      f.created_at
     FROM 
       mentee_feedback f
     JOIN 
       userdetails u ON f.mentor_email = u.email
     WHERE 
-      f.mentee_email = ? AND f.language_name = ?;
+      f.mentee_email = ? AND f.language_name = ?
+    ORDER BY 
+      f.created_at DESC
+    LIMIT 1;
   `;
 
   db.query(query, [menteeEmail, language], (err, results) => {
     if (err) {
-      console.error('Error fetching feedback for mentee by language:', err);
+      console.error('Error fetching latest feedback for mentee by language:', err);
       return res.status(500).send({ error: 'Database error', details: err.message });
     }
 
     return res.json(results);
-    // returns
-    // [
-    //    {
-    //       "name": "Gowtham J",
-    //       "email": "gowthamj.al24@bitsathy.ac.in",
-    //       "rating": 5,
-    //       "feedback": "Good mentee"
-    //    }
-    // ]
   });
 });
 
