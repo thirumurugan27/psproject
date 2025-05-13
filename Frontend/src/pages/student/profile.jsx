@@ -3,11 +3,6 @@ import Navbar from '../../components/navbar/navbar';
 import profilePic from '../../assets/userPS.png'; 
 import axios from 'axios';
 function Profile() {
-const user = {
-name: 'Gowtham',
-email: 'gowthamj.al24@bitsathy.ac.in',
-points: 1200,
-};
 const [profileData , setProfileData] = useState([]);
 const [menteeContribution ,setMenteeContribution] = useState([]);
 const [contributionPopup , setContributionPopup] = useState(false);
@@ -61,7 +56,7 @@ return (
                 </thead>
                 <tbody>
                     {menteeContribution.map((data, index) => (
-                    <tr key={index} className="border-t border-gray-500">
+                    <tr key={index} className={`border-t border-gray-500 ${index%2 !== 0 && 'bg-gray-200'}`}>
                         <td className="p-2">{data.mentee_name}</td>
                         <td className="p-2">{data.mentee_email}</td>
                         <td className="p-2">{data.language}</td>
