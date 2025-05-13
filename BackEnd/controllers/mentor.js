@@ -140,7 +140,7 @@ router.get("/mentees-requests/:mentor_email", (req, res) => {
     }
 
     if (requests.length === 0) {
-      return res.status(200).json({});
+      return res.status(200).json([]);
     }
 
     res.json({requests });
