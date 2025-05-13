@@ -14,6 +14,7 @@ router.get("/levels/:email", (req, res) => {
     levels: []
   };
 
+
   const sqlLevels = `
     SELECT language_name, level 
     FROM student_levels 
@@ -49,7 +50,7 @@ router.get("/levels/:email", (req, res) => {
       me.mentor_email,
       ud.name AS mentor_name,
       DATE_FORMAT(me.start_date, '%d-%m-%Y') AS start_date,
-      DATE_FORMAT(DATE_ADD(me.start_date, INTERVAL 6 DAY), '%d-%m-%Y') AS end_date,
+      DATE_FORMAT(me.end_date,'%d-%m-%Y') AS end_date,
       me.status
     FROM mentees AS me
     JOIN student_levels AS sl 
@@ -79,22 +80,25 @@ router.get("/levels/:email", (req, res) => {
   `;
 
   const sqlMenteeRequest = `
-    SELECT 
-      mr.language_name,
-      sl.level AS mentee_level,
-      DATE_FORMAT(mr.request_date, '%d-%m-%Y') AS request_date,
-      mr.status,
-      mr.mentor_email,
-      ud.name AS mentor_name
-    FROM mentee_requests mr
-    JOIN student_levels sl 
-      ON mr.student_email = sl.student_email AND mr.language_name = sl.language_name
-    JOIN userdetails ud 
-      ON mr.mentor_email = ud.email
-    WHERE mr.student_email = ? 
-      AND mr.status IN ('pending', 'rejected')
-      AND DATEDIFF(CURDATE(), mr.request_date) < 6
-  `;
+  SELECT 
+    mr.language_name,
+    sl.level AS mentee_level,
+    msl.level AS mentor_level,
+    DATE_FORMAT(mr.request_date, '%d-%m-%Y') AS request_date,
+    mr.status,
+    mr.mentor_email,
+    ud.name AS mentor_name
+  FROM mentee_requests mr
+  JOIN student_levels sl 
+    ON mr.student_email = sl.student_email AND mr.language_name = sl.language_name
+  JOIN student_levels msl 
+    ON mr.mentor_email = msl.student_email AND mr.language_name = msl.language_name
+  JOIN userdetails ud 
+    ON mr.mentor_email = ud.email
+  WHERE mr.student_email = ? 
+    AND mr.status IN ('pending', 'rejected')
+    AND DATEDIFF(CURDATE(), mr.request_date) < 6
+`;
 
   db.query(sqlLevels, [email, email], (err, levels) => {
     if (err) return res.status(500).json({ error: "Levels query error", details: err.message });

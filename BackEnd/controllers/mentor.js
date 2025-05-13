@@ -291,6 +291,8 @@ router.post("/update-request", (req, res) => {
     );
   });
 });
+
+
 //after accepting the request, delete the request
 router.delete("/delete", (req, res) => {
   const query = `DELETE FROM mentee_requests WHERE status = 'delete'`;
