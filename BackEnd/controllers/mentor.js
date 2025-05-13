@@ -167,129 +167,107 @@ router.get("/mentees-requests/:mentor_email", (req, res) => {
 
 //To accept and reject the request(Note use DELETE method to delete the request NEXT to This code)
 router.post("/update-request", (req, res) => {
-  const {
-    student_email,
-    mentor_email,
-    language_name,
-    status,
-    rejection_reason,
-  } = req.body;
+  const { id, status, rejection_reason } = req.body;
 
-  if (!student_email || !mentor_email || !language_name || !status) {
+  if (!id || !status) {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
-  // Debugging: Check the structure of the table (optional)
-  db.query("DESCRIBE mentee_requests", (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-
-    // Check if pending request exists
-    db.query(
-      'SELECT * FROM mentee_requests WHERE student_email = ? AND mentor_email = ? AND language_name = ? AND status = "pending"',
-      [student_email, mentor_email, language_name],
-      (err, request) => {
-        if (err) {
-          return res.status(500).json({ error: err.message });
-        }
-
-        if (request.length === 0) {
-          return res.status(404).json({ message: "No pending request found" });
-        }
-
-        if (status === "accepted") {
-          // Step 1: Update status to 'accepted' for the selected mentor
-          db.query(
-            'UPDATE mentee_requests SET status = "accepted" WHERE student_email = ? AND mentor_email = ? AND language_name = ?',
-            [student_email, mentor_email, language_name],
-            (err) => {
-              if (err) {
-                return res.status(500).json({ error: err.message });
-              }
-
-              // Step 2: Get mentor's start and end dates
-              db.query(
-                'SELECT start_date, end_date FROM mentors WHERE student_email = ? AND language_name = ? AND status = "ongoing"',
-                [mentor_email, language_name],
-                (err, dateResult) => {
-                  if (err) {
-                    return res.status(500).json({ error: err.message });
-                  }
-
-                  if (dateResult.length === 0) {
-                    return res.status(400).json({
-                      message: "Mentor's mentorship dates not found.",
-                    });
-                  }
-
-                  const { start_date, end_date } = dateResult[0];
-
-                  // Step 3: Insert into mentees table
-                  db.query(
-                    'INSERT INTO mentees (mentor_email, mentee_email, language_name, start_date, end_date, status) VALUES (?, ?, ?, ?, ?, "ongoing")',
-                    [mentor_email, student_email, language_name, start_date, end_date],
-                    (err) => {
-                      if (err) {
-                        return res.status(500).json({ error: err.message });
-                      }
-
-                      // Step 4: Update all other mentee requests to status = 'delete'
-                      db.query(
-                        `UPDATE mentee_requests 
-                         SET status = "delete" 
-                         WHERE student_email = ? 
-                           AND status = "pending"`,
-                        [student_email],
-                        (err) => {
-                          if (err) {
-                            return res.status(500).json({ error: err.message });
-                          }
-
-                          return res.json({
-                            message:
-                              "Mentee request accepted. Mentee added and other mentor requests marked as deleted.",
-                          });
-                        }
-                      );
-                    }
-                  );
-                }
-              );
-            }
-          );
-        }
-        
-        
-        
-         else if (status === "rejected") {
-          // Reject with reason
-          db.query(
-            'UPDATE mentee_requests SET status = "rejected", rejection_reason = ? WHERE student_email = ? AND mentor_email = ? AND language_name = ?',
-            [
-              rejection_reason || "Not specified",
-              student_email,
-              mentor_email,
-              language_name,
-            ],
-            (err) => {
-              if (err) {
-                return res.status(500).json({ error: err.message });
-              }
-
-              return res.json({
-                message: "Mentee request rejected successfully",
-              });
-            }
-          );
-        } else {
-          return res.status(400).json({
-            message: 'Invalid status value. Use "accepted" or "rejected"',
-          });
-        }
+  // Step 1: Check if the request exists and is pending
+  db.query(
+    'SELECT * FROM mentee_requests WHERE id = ? AND status = "pending"',
+    [id],
+    (err, requestResult) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
       }
-    );
-  });
+
+      if (requestResult.length === 0) {
+        return res.status(404).json({ message: "No pending request found with that ID" });
+      }
+
+      const request = requestResult[0];
+      const { student_email, mentor_email, language_name } = request;
+
+      if (status === "accepted") {
+        // Step 2: Accept the request
+        db.query(
+          'UPDATE mentee_requests SET status = "accepted" WHERE id = ?',
+          [id],
+          (err) => {
+            if (err) {
+              return res.status(500).json({ error: err.message });
+            }
+
+            // Step 3: Get mentor's mentorship dates
+            db.query(
+              'SELECT start_date, end_date FROM mentors WHERE student_email = ? AND language_name = ? AND status = "ongoing"',
+              [mentor_email, language_name],
+              (err, dateResult) => {
+                if (err) {
+                  return res.status(500).json({ error: err.message });
+                }
+
+                if (dateResult.length === 0) {
+                  return res.status(400).json({
+                    message: "Mentor's mentorship dates not found.",
+                  });
+                }
+
+                const { start_date, end_date } = dateResult[0];
+
+                // Step 4: Insert into mentees table
+                db.query(
+                  'INSERT INTO mentees (mentor_email, mentee_email, language_name, start_date, end_date, status) VALUES (?, ?, ?, ?, ?, "ongoing")',
+                  [mentor_email, student_email, language_name, start_date, end_date],
+                  (err) => {
+                    if (err) {
+                      return res.status(500).json({ error: err.message });
+                    }
+
+                    // Step 5: Mark other pending requests by same student as deleted
+                    db.query(
+                      'UPDATE mentee_requests SET status = "delete" WHERE student_email = ? AND status = "pending" AND id != ?',
+                      [student_email, id],
+                      (err) => {
+                        if (err) {
+                          return res.status(500).json({ error: err.message });
+                        }
+
+                        return res.json({
+                          message:
+                            "Mentee request accepted. Mentee added and other mentor requests marked as deleted.",
+                        });
+                      }
+                    );
+                  }
+                );
+              }
+            );
+          }
+        );
+      } else if (status === "rejected") {
+        // Reject request
+        db.query(
+          'UPDATE mentee_requests SET status = "rejected", rejection_reason = ? WHERE id = ?',
+          [rejection_reason || "Not specified", id],
+          (err) => {
+            if (err) {
+              return res.status(500).json({ error: err.message });
+            }
+
+            return res.json({
+              message: "Mentee request rejected successfully",
+            });
+          }
+        );
+      } else {
+        return res.status(400).json({
+          message: 'Invalid status value. Use "accepted" or "rejected"',
+        });
+      }
+    }
+  );
 });
 
 
