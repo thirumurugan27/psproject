@@ -14,7 +14,6 @@ router.get("/levels/:email", (req, res) => {
     levels: []
   };
 
-  // ✅ Updated: Exclude languages involved in recent rejected mentor requests or mentee requests
   const sqlLevels = `
     SELECT language_name, level 
     FROM student_levels 
@@ -70,24 +69,23 @@ router.get("/levels/:email", (req, res) => {
   `;
 
   const sqlMentorRequest = `
-  SELECT 
-    mr.id,
-    mr.language_name, 
-    mr.rejection_reason,
-    sl.level,
-    mr.status, 
-    DATE_FORMAT(mr.request_date, '%d-%m-%Y') AS request_date,
-    mr.view
-  FROM mentor_requests mr
-  JOIN student_levels sl 
-    ON mr.student_email = sl.student_email 
-    AND mr.language_name = sl.language_name
-  WHERE mr.student_email = ? 
-    AND DATEDIFF(CURDATE(), mr.request_date) <= 6 
-    AND mr.status IN ('pending', 'rejected')
-    AND mr.view = 'no'
-`;
-
+    SELECT 
+      mr.id,
+      mr.language_name, 
+      mr.rejection_reason,
+      sl.level,
+      mr.status, 
+      DATE_FORMAT(mr.request_date, '%d-%m-%Y') AS request_date,
+      mr.view
+    FROM mentor_requests mr
+    JOIN student_levels sl 
+      ON mr.student_email = sl.student_email 
+      AND mr.language_name = sl.language_name
+    WHERE mr.student_email = ? 
+      AND DATEDIFF(CURDATE(), mr.request_date) <= 6 
+      AND mr.status IN ('pending', 'rejected')
+      AND mr.view = 'no'
+  `;
 
   const sqlMenteeRequest = `
     SELECT 
@@ -111,26 +109,25 @@ router.get("/levels/:email", (req, res) => {
       AND DATEDIFF(CURDATE(), mr.request_date) < 6
   `;
 
-  // Execute all queries in order
   db.query(sqlLevels, [email, email, email], (err, levels) => {
     if (err) return res.status(500).json({ error: "Levels query error", details: err.message });
     result.levels = levels;
 
     db.query(sqlMentor, [email], (err, mentors) => {
       if (err) return res.status(500).json({ error: "Mentor query error", details: err.message });
-      result.mentor = mentors;
+      result.mentor = mentors.map(m => ({ ...m, role: "mentor" }));
 
       db.query(sqlMentee, [email], (err, mentees) => {
         if (err) return res.status(500).json({ error: "Mentee query error", details: err.message });
-        result.mentee = mentees;
+        result.mentee = mentees.map(m => ({ ...m, role: "mentee" }));
 
         db.query(sqlMentorRequest, [email], (err, mentorRequests) => {
           if (err) return res.status(500).json({ error: "Mentor request query error", details: err.message });
-          result.mentorrequest = mentorRequests;
+          result.mentorrequest = mentorRequests.map(m => ({ ...m, role: "mentor" }));
 
           db.query(sqlMenteeRequest, [email], (err, menteeRequests) => {
             if (err) return res.status(500).json({ error: "Mentee request query error", details: err.message });
-            result.menteerequest = menteeRequests;
+            result.menteerequest = menteeRequests.map(m => ({ ...m, role: "mentee" }));
 
             return res.status(200).json(result);
           });
@@ -139,6 +136,7 @@ router.get("/levels/:email", (req, res) => {
     });
   });
 });
+
 
 //return
 // {

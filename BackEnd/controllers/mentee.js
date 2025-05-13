@@ -130,7 +130,7 @@ router.get("/mentor-detail/:email", (req, res) => {
     FROM mentees m
     JOIN userdetails u ON u.email = m.mentor_email
     JOIN student_levels sl ON sl.student_email = m.mentor_email AND sl.language_name = m.language_name
-    WHERE m.mentee_email = ?
+    WHERE m.mentee_email = ? AND m.status = 'ongoing'
   `;
 
   db.query(sql, [menteeEmail], (err, results) => {
@@ -139,7 +139,7 @@ router.get("/mentor-detail/:email", (req, res) => {
       return res.status(500).json({ error: "DB error" });
     }
     if (results.length === 0) {
-      return res.status(200).json({ message: "No mentee history found" }); //404 to 200
+      return res.status(200).json([]); //404 to 200
       // "mentor_email": "thirumurugank.al24@bitsathy.ac.in",
       // "mentor_name": "Thirumurugan K",
       // "language_name": "C",
