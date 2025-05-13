@@ -40,7 +40,6 @@ router.post("/send-request", (req, res) => {
   });
 });
 
-
 //mentor request changed by faculty
 //To see the ststus of request
 router.get("/request-status/:email", (req, res) => {
@@ -78,6 +77,26 @@ router.get("/request-status/:email", (req, res) => {
     //  "level": 3,
     //  "status": "rejected",
     //  "requested_on": "27-04-2025
+  });
+});
+
+//put to change views to yes after mentor jejection
+router.put('/view/:id', (req, res) => {
+  const requestId = req.params.id;
+
+  const sql = `UPDATE mentor_requests SET view = 'yes' WHERE id = ?`;
+
+  db.query(sql, [requestId], (err, result) => {
+    if (err) {
+      console.error('Error updating view:', err);
+      return res.status(500).json({ error: 'Database error while updating view.' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Mentor request not found.' });
+    }
+
+    res.json({ message: `'view' set to 'yes' for request ID ${requestId}.` });
   });
 });
 
@@ -272,8 +291,6 @@ router.post("/update-request", (req, res) => {
     );
   });
 });
-
-
 //after accepting the request, delete the request
 router.delete("/delete", (req, res) => {
   const query = `DELETE FROM mentee_requests WHERE status = 'delete'`;
@@ -288,6 +305,7 @@ router.delete("/delete", (req, res) => {
     });
   });
 });
+
 
 //to see the all mentees
 router.get("/menteeslist/:mentor_email", (req, res) => {
@@ -334,7 +352,6 @@ router.get("/menteeslist/:mentor_email", (req, res) => {
     //   "status": "ongoing"
   });
 });
-
 
 
 
@@ -554,7 +571,8 @@ router.get('/mentorshiprp/:mentorEmail', (req, res) => {
         languages l ON s.language = l.language_name
     WHERE 
         s.mentor_email = ?
-        AND s.level_cleared = 'yes';
+        AND s.level_cleared = 'yes'
+    ORDER BY s.id DESC;
   `;
 
   db.query(query, [mentorEmail], (err, results) => {
