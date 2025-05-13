@@ -94,7 +94,8 @@ function Faculty() {
                 rejection_reason: feedBack,
             });
             console.log('Rejection response: ', response.data);
-                        toast.error("Mentor rejected", {
+            
+                toast.error("Mentor rejected", {
                 position: "top-center",
                 autoClose: 5000,
                 hideProgressBar: false,
