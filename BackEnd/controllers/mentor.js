@@ -561,44 +561,35 @@ router.get('/mentorshiprp/:mentorEmail', (req, res) => {
   });
 });
 
+router.get("/slots/:email", (req, res) => {
+  const mentorEmail = req.params.email;
 
-router.get('/ongoing-slots/:mentorEmail', (req, res) => {
-  const mentorEmail = req.params.mentorEmail;
-
-  const query = `
+  const sql = `
     SELECT 
-        s.*, 
-        u.name AS mentee_name
-    FROM 
-        slot s
-    JOIN 
-        userdetails u ON s.mentee_email = u.email
-    WHERE 
-        s.mentor_email = ?
-        AND s.status = 'ongoing';
+      id,
+      mentee_email,
+      language,
+      level,
+      slot_venue,
+      DATE_FORMAT(date, '%d-%m-%Y') AS date,
+      start_time,
+      end_time,
+      status,
+      level_cleared
+    FROM slot
+    WHERE mentor_email = ? AND status = 'ongoing'
+    ORDER BY date, start_time
   `;
 
-  db.query(query, [mentorEmail], (err, results) => {
+  db.query(sql, [mentorEmail], (err, results) => {
     if (err) {
-      console.error('Error fetching ongoing slots:', err);
-      return res.status(500).json({ message: 'Server error' });
+      return res.status(500).json({ error: "Database error", details: err.message });
     }
 
-    // Format date to dd-mm-yyyy
-    const formattedResults = results.map(slot => {
-      const dateObj = new Date(slot.date);
-      const day = String(dateObj.getDate()).padStart(2, '0');
-      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-      const year = dateObj.getFullYear();
-      return {
-        ...slot,
-        date: `${day}-${month}-${year}`
-      };
-    });
-
-    res.status(200).json({ slots: formattedResults });
+    res.status(200).json(results);
   });
 });
+
 
 
 
