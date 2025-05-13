@@ -155,7 +155,6 @@ router.get("/mentees-requests/:mentor_email", (req, res) => {
 
 
 
-
 //To accept and reject the request(Note use DELETE method to delete the request NEXT to This code)
 router.post("/update-request", (req, res) => {
   const { id, status, rejection_reason } = req.body;
