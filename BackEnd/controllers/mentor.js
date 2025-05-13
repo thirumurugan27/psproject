@@ -114,44 +114,42 @@ router.get("/mentees-requests/:mentor_email", (req, res) => {
       mr.language_name, 
       sl.level,
       DATE_FORMAT(mr.request_date, '%d-%m-%Y') AS request_date,
-      mr.status
+      mr.status,
+      fb.rating AS latest_rating,
+      fb.feedback AS latest_feedback,
+      fb.created_at AS feedback_date
     FROM mentee_requests mr
     JOIN userdetails u ON mr.student_email = u.email
     JOIN student_levels sl 
       ON sl.student_email = mr.student_email 
      AND sl.language_name = mr.language_name
+    LEFT JOIN (
+      SELECT f1.*
+      FROM mentee_feedback f1
+      JOIN (
+        SELECT mentee_email, language_name, MAX(created_at) AS latest
+        FROM mentee_feedback
+        GROUP BY mentee_email, language_name
+      ) f2 ON f1.mentee_email = f2.mentee_email 
+           AND f1.language_name = f2.language_name 
+           AND f1.created_at = f2.latest
+      WHERE f1.mentor_email = ?
+    ) fb ON fb.mentee_email = mr.student_email 
+         AND fb.language_name = mr.language_name
     WHERE 
       mr.mentor_email = ? 
-      AND mr.status = 'pending'
+      AND mr.status = 'pending';
   `;
 
-  db.query(query, [mentor_email], (err, requests) => {
+  db.query(query, [mentor_email, mentor_email], (err, requests) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
 
-    if (requests.length === 0) {
-      return res.status(200).json([]);
-    }
-
-    res.json({requests });
-  //   return format
-  //   {
-  //     "requests": [
-  //       {
-  //         "student_email": "student2.al24@bitsathy.ac.in",
-  //         "request_id": 5,
-  //         "student_name": "student2",
-  //         "language_name": "C",
-  //         "level": 4,
-  //         "request_date": "11-05-2025",
-  //         "status": "pending"
-  //       }
-  //     ]
-  // }
-
+    res.json({ requests });
   });
 });
+
 
 
 //To accept and reject the request(Note use DELETE method to delete the request NEXT to This code)
