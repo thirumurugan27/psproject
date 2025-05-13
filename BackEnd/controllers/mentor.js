@@ -117,14 +117,16 @@ router.get("/mentees-requests/:mentor_email", (req, res) => {
       mr.status,
       fb.rating AS latest_rating,
       fb.feedback AS latest_feedback,
-      fb.created_at AS feedback_date
+      fb.created_at AS feedback_date,
+      fb.mentor_name,
+      fb.mentor_email
     FROM mentee_requests mr
     JOIN userdetails u ON mr.student_email = u.email
     JOIN student_levels sl 
       ON sl.student_email = mr.student_email 
      AND sl.language_name = mr.language_name
     LEFT JOIN (
-      SELECT f1.*
+      SELECT f1.*, ud.name AS mentor_name
       FROM mentee_feedback f1
       JOIN (
         SELECT mentee_email, language_name, MAX(created_at) AS latest
@@ -133,6 +135,7 @@ router.get("/mentees-requests/:mentor_email", (req, res) => {
       ) f2 ON f1.mentee_email = f2.mentee_email 
            AND f1.language_name = f2.language_name 
            AND f1.created_at = f2.latest
+      JOIN userdetails ud ON f1.mentor_email = ud.email
       WHERE f1.mentor_email = ?
     ) fb ON fb.mentee_email = mr.student_email 
          AND fb.language_name = mr.language_name
@@ -149,6 +152,7 @@ router.get("/mentees-requests/:mentor_email", (req, res) => {
     res.json({ requests });
   });
 });
+
 
 
 
