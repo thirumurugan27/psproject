@@ -43,11 +43,20 @@ router.get("/mentors/:student_email/:language_name", (req, res) => {
         LEFT JOIN mentees me ON me.mentor_email = m.student_email 
           AND me.language_name = m.language_name 
           AND me.status = 'ongoing'
-        WHERE m.status = 'ongoing' AND m.language_name = ?
+        WHERE 
+          m.status = 'ongoing' 
+          AND m.language_name = ?
+          AND m.student_email NOT IN (
+            SELECT mentor_email 
+            FROM mentee_requests 
+            WHERE student_email = ? 
+              AND language_name = ? 
+              AND status IN ('pending', 'rejected')
+          )
         GROUP BY m.student_email, m.language_name
       `;
 
-      db.query(sql, [language_name], (err2, mentors) => {
+      db.query(sql, [language_name, student_email, language_name], (err2, mentors) => {
         if (err2) return res.status(500).json({ error: "Mentor fetch error" });
 
         const studentLevel = studentLevels[language_name] || 0;
@@ -71,6 +80,7 @@ router.get("/mentors/:student_email/:language_name", (req, res) => {
     });
   });
 });
+
 
 
 // 📝📚👩‍🏫👨‍🏫POST mentee request to mentor
@@ -159,6 +169,7 @@ router.get("/mentor-detail/:email", (req, res) => {
     res.json(formattedResults);
   });
 });
+
 
 // AVG(⭐) .To get the AVERAGE rating of a mentor
 router.get('/avg-rating/:mentor_email/:language', (req, res) => {
