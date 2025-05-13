@@ -123,15 +123,6 @@ router.get("/mentees-requests/:mentor_email", (req, res) => {
     WHERE 
       mr.mentor_email = ? 
       AND mr.status = 'pending'
-      AND NOT EXISTS (
-        SELECT 1 
-        FROM mentor_feedback mf
-        WHERE 
-          mf.mentor_email = mr.mentor_email
-          AND mf.mentee_email = mr.student_email
-          AND mf.language_name = mr.language_name
-      )
-    ORDER BY mr.request_date ASC
   `;
 
   db.query(query, [mentor_email], (err, requests) => {
