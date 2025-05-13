@@ -70,23 +70,24 @@ router.get("/levels/:email", (req, res) => {
   `;
 
   const sqlMentorRequest = `
-    SELECT 
-      mr.id,
-      mr.language_name, 
-      mr.rejection_reason,
-      sl.level,
-      mr.status, 
-      DATE_FORMAT(mr.request_date, '%d-%m-%Y') AS request_date,
-      mr.view
-    FROM mentor_requests mr
-    JOIN student_levels sl 
-      ON mr.student_email = sl.student_email 
-      AND mr.language_name = sl.language_name
-    WHERE mr.student_email = ? 
-      AND DATEDIFF(CURDATE(), mr.request_date) <= 6 
-      AND mr.status = 'pending',
-      AND mr.view = 'no'
-  `;
+  SELECT 
+    mr.id,
+    mr.language_name, 
+    mr.rejection_reason,
+    sl.level,
+    mr.status, 
+    DATE_FORMAT(mr.request_date, '%d-%m-%Y') AS request_date,
+    mr.view
+  FROM mentor_requests mr
+  JOIN student_levels sl 
+    ON mr.student_email = sl.student_email 
+    AND mr.language_name = sl.language_name
+  WHERE mr.student_email = ? 
+    AND DATEDIFF(CURDATE(), mr.request_date) <= 6 
+    AND mr.status IN ('pending', 'rejected')
+    AND mr.view = 'no'
+`;
+
 
   const sqlMenteeRequest = `
     SELECT 
