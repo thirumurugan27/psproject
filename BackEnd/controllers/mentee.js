@@ -91,38 +91,27 @@ router.post("/request", (req, res) => {
     return res.status(400).json({ message: "Missing fields" });
   }
 
-  const checkQuery =
-    "SELECT * FROM mentee_requests WHERE student_email = ? AND language_name = ? AND status = 'pending'";
-  db.query(checkQuery, [student_email, language_name], (err, existing) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const insertQuery = `
+    INSERT INTO mentee_requests (student_email, mentor_email, language_name, request_date)
+    VALUES (?, ?, ?, ?)
+  `;
 
-    if (existing.length > 0) {
-      return res
-        .status(409)
-        .json({ message: "Request for this language already exists" });
-    }
-
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-    const insertQuery =
-      "INSERT INTO mentee_requests (student_email, mentor_email, language_name, request_date) VALUES (?, ?, ?, ?)";
-
-    db.query(
-      insertQuery,
-      [student_email, mentor_email, language_name, today],
-      (err, result) => {
-        if (err) {
-          return res.status(500).json({ error: err.message });
-        }
-
-        return res
-          .status(201)
-          .json({ message: "Mentee request sent successfully" });
+  db.query(
+    insertQuery,
+    [student_email, mentor_email, language_name, today],
+    (err, result) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
       }
-    );
-  });
+
+      return res
+        .status(201)
+        .json({ message: "Mentee request sent successfully" });
+    }
+  );
 });
+
 
 
 //🔍📋to get mentor detail
