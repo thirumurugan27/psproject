@@ -14,24 +14,10 @@ router.get("/levels/:email", (req, res) => {
     levels: []
   };
 
-  const sqlLevels = `
+  const sqlAllLevels = `
     SELECT language_name, level 
     FROM student_levels 
     WHERE student_email = ?
-      AND language_name NOT IN (
-        SELECT language_name 
-        FROM mentor_requests 
-        WHERE student_email = ? 
-          AND status = 'rejected'
-          AND DATEDIFF(CURDATE(), request_date) <= 6
-      )
-      AND language_name NOT IN (
-        SELECT language_name 
-        FROM mentee_requests 
-        WHERE student_email = ? 
-          AND status IN ('pending', 'rejected')
-          AND DATEDIFF(CURDATE(), request_date) < 6
-      )
     ORDER BY language_name
   `;
 
@@ -109,34 +95,87 @@ router.get("/levels/:email", (req, res) => {
       AND DATEDIFF(CURDATE(), mr.request_date) < 6
   `;
 
-  db.query(sqlLevels, [email, email, email], (err, levels) => {
+  // Step 1: Get all student levels
+  db.query(sqlAllLevels, [email], (err, levels) => {
     if (err) return res.status(500).json({ error: "Levels query error", details: err.message });
-    result.levels = levels;
 
-    db.query(sqlMentor, [email], (err, mentors) => {
-      if (err) return res.status(500).json({ error: "Mentor query error", details: err.message });
-      result.mentor = mentors.map(m => ({ ...m, role: "mentor" }));
+    const filteredLevels = [];
 
-      db.query(sqlMentee, [email], (err, mentees) => {
-        if (err) return res.status(500).json({ error: "Mentee query error", details: err.message });
-        result.mentee = mentees.map(m => ({ ...m, role: "mentee" }));
+    const checkMentorsForLanguage = (index) => {
+      if (index >= levels.length) {
+        result.levels = filteredLevels;
 
-        db.query(sqlMentorRequest, [email], (err, mentorRequests) => {
-          if (err) return res.status(500).json({ error: "Mentor request query error", details: err.message });
-          result.mentorrequest = mentorRequests.map(m => ({ ...m, role: "mentor" }));
+        // Step 2: Continue other queries
+        return db.query(sqlMentor, [email], (err, mentors) => {
+          if (err) return res.status(500).json({ error: "Mentor query error", details: err.message });
+          result.mentor = mentors.map(m => ({ ...m, role: "mentor" }));
 
-          db.query(sqlMenteeRequest, [email], (err, menteeRequests) => {
-            if (err) return res.status(500).json({ error: "Mentee request query error", details: err.message });
-            result.menteerequest = menteeRequests.map(m => ({ ...m, role: "mentee" }));
+          db.query(sqlMentee, [email], (err, mentees) => {
+            if (err) return res.status(500).json({ error: "Mentee query error", details: err.message });
+            result.mentee = mentees.map(m => ({ ...m, role: "mentee" }));
 
-            return res.status(200).json(result);
+            db.query(sqlMentorRequest, [email], (err, mentorRequests) => {
+              if (err) return res.status(500).json({ error: "Mentor request query error", details: err.message });
+              result.mentorrequest = mentorRequests.map(m => ({ ...m, role: "mentor" }));
+
+              db.query(sqlMenteeRequest, [email], (err, menteeRequests) => {
+                if (err) return res.status(500).json({ error: "Mentee request query error", details: err.message });
+                result.menteerequest = menteeRequests.map(m => ({ ...m, role: "mentee" }));
+
+                return res.status(200).json(result);
+              });
+            });
           });
         });
+      }
+
+      const { language_name, level } = levels[index];
+
+      // Step 2: Get all mentors for this language
+      const mentorQuery = `
+        SELECT DISTINCT m.student_email
+        FROM mentors m
+        JOIN student_levels sl ON sl.student_email = m.student_email AND sl.language_name = m.language_name
+        WHERE m.status = 'ongoing' AND m.language_name = ? AND sl.level >= 2
+      `;
+
+      db.query(mentorQuery, [language_name], (err, mentors) => {
+        if (err) return res.status(500).json({ error: "Mentor fetch error", details: err.message });
+
+        if (mentors.length === 0) {
+          // No mentors → include the language
+          filteredLevels.push({ language_name, level });
+          return checkMentorsForLanguage(index + 1);
+        }
+
+        const mentorEmails = mentors.map(m => m.student_email);
+
+        // Step 3: Get rejected mentor emails by the student
+        const rejectionQuery = `
+          SELECT mentor_email FROM mentee_requests
+          WHERE student_email = ? AND language_name = ? AND status = 'rejected'
+            AND DATEDIFF(CURDATE(), request_date) < 6
+        `;
+
+        db.query(rejectionQuery, [email, language_name], (err, rejected) => {
+          if (err) return res.status(500).json({ error: "Rejection fetch error", details: err.message });
+
+          const rejectedMentors = rejected.map(r => r.mentor_email);
+
+          const allRejected = mentorEmails.every(m => rejectedMentors.includes(m));
+
+          if (!allRejected) {
+            filteredLevels.push({ language_name, level });
+          }
+
+          checkMentorsForLanguage(index + 1);
+        });
       });
-    });
+    };
+
+    checkMentorsForLanguage(0); // Recursive async check
   });
 });
-
 
 //return
 // {
