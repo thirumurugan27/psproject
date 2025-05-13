@@ -1,64 +1,78 @@
-import React, { useEffect } from "react";
-import { Menu,X } from "lucide-react";
-import { useState } from "react";
+// student.jsx
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-
-import mentor from '../../assets/help.png'
-import mentee from '../../assets/mentee.png'
-import logout from '../../assets/logout.png'
-import profile from '../../assets/avatar.png'
 
 import Navbar from "../../components/navbar/navbar";
 import SkillsCard from "./skills_card";
 
 function Courses() {
-  const [courses,setCourses] = useState([])
-  const [hamburger,setHamburger] = useState(false);
-  const [mentor_btn, setMentor_btn] = useState(false);
-  const [mentor_request,set_mentor_request] = useState("pending");
-  const [mentee_btn ,setMentee_btn] = useState(false);
-  const [mentee_request,set_mentee_request] = useState("pending");
+  const [courses, setCourses] = useState([]);
+  const [mentor, setMentor] = useState([]);
+  const [mentee, setMentee] = useState([]);
+  const [mentorReq, setMentorReq] = useState([]);
+  const [menteeReq, setMenteeReq] = useState([]);
+  const [popup, setPopup] = useState(false);
+  const [selectedRejectedCourse, setSelectedRejectedCourse] = useState(null);
 
-  useEffect(()=>{
-async function GetAllSkill() {
-      try{
-        const response = await axios.get(`http://localhost:5000/student/levels/${localStorage.getItem("email")}`)
-        console.log("Student_card: ",response.data);
-        setCourses(response.data.levels)
-      }
-      catch (err)
-      {
+  useEffect(() => {
+    async function GetAllSkill() {
+      try {
+        const response = await axios.get(
+          `http://localhost:5000/student/levels/${localStorage.getItem("email")}`
+        );
+        console.log("students : ", response.data)
+        setCourses(response.data.levels);
+        setMentor(response.data.mentor);
+        setMentee(response.data.mentee);
+        setMentorReq(response.data.mentorrequest);
+        setMenteeReq(response.data.menteerequest);
+      } catch (err) {
         console.error(err);
       }
     }
     GetAllSkill();
+  }, []);
 
-  },[])
+  return (
+    <div className="flex h-screen w-full">
+      <Navbar />
+      <div className="flex-1 flex flex-col">
+        <header className="h-[64px] bg-white px-10 py-4 shadow text-xl font-semibold sticky top-0 z-10">
+          PS Mentorship
+        </header>
 
-return (
-<div className="flex h-screen w-full">
-<Navbar/>
-    <div className="flex-1 flex flex-col">
-    <header className=" h-[64px] bg-white px-10 lg:px-6 py-4 shadow text-xl font-semibold sticky top-0 z-10">
-        PS Mentorship
-    </header>
+        <main className="p-6 overflow-y-auto bg-gray-100 flex-1">
+          <h2 className="text-xl font-medium mb-4 text-[#5F6388]">
+            Courses Available
+          </h2>
 
-    {/* Main Page Content */}
-    <main className="p-6 overflow-y-auto bg-gray-100 flex-1">
-      
-        <h2 className="text-xl font-medium mb-4 text-[#5F6388]">Courses Available</h2>
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-        {courses.length===0 && <p>Loading...</p>}
-        {
-        courses.map((course, index) => (
-          <SkillsCard key={index} course={course}/>
-        ))
-        }
-        </div>
-    </main>
+
+
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+            {(mentorReq.length
+              ? mentorReq
+              : menteeReq.length
+              ? menteeReq
+              : mentor.length
+              ? mentor
+              : mentee.length
+              ? mentee
+              : courses
+            ).map((course, index) => (
+              <SkillsCard
+                key={index}
+                course={course}
+                onRejectClick={(course) => {
+                  setSelectedRejectedCourse(course);
+                  setPopup(true);
+                }}
+              />
+            ))}
+          </div>
+        </main>
+      </div>
     </div>
-</div>
-);
+  );
 }
 
 export default Courses;
