@@ -129,7 +129,7 @@ return (
                     <tr className="bg-gray-100 font-bold">
                     <td className="px-4 py-3">Total Points</td>
                     <td className="px-4 py-3 text-right">
-                        {Number(profileData.normal_rp) + Number(profileData.mentorship_rp)}
+                        {profileData.normal_rp && Number(profileData.normal_rp) + profileData.normal_rp &&  Number(profileData.mentorship_rp)}
                     </td>
                     </tr>
                 </tbody>

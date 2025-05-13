@@ -26,6 +26,7 @@
         console.log(err);
         }
     }
+
     useEffect(() => {
     async function GetAllSkill() {
       try {
@@ -40,6 +41,18 @@
     }
     GetAllSkill();
   }, []);
+
+      async function PutMentorReject() {
+      try{
+            const response = await axios.put(`http://localhost:5000/mentor/view/${mentor?.id}`);
+        console.log("rejection argeed... ", response.data);
+        window.location.reload();
+        }
+        catch (err) {
+        console.log(err);
+        }
+
+    }
     const imageSrc =
         course.language_name === 'C' ? c :
         course.language_name === 'C++' ? c_class :
@@ -52,8 +65,6 @@
         '';
 
     const level = course.level ?? course.mentee_level ?? 0;
-    const mentorStatus = course.status || course.mentorrequest?.status;
-    const menteeStatus = course.mentee?.status || course.menteerequest?.status;
 
     return (
         <div className="p-[15px] bg-white rounded-lg shadow-md overflow-hidden">
@@ -103,7 +114,7 @@
       <div className="w-full bg-[#EEF1F9] border-none focus:outline-none p-3 rounded text-black overflow-y-auto">
         {mentor?.rejection_reason}
       </div>
-      <div className='bg-[#7D53F6] hover:cursor-pointer text-white text-center p-2 rounded-sm mt-4'>
+      <div className='bg-[#7D53F6] hover:cursor-pointer text-white text-center p-2 rounded-sm mt-4' onClick={PutMentorReject}>
         Accept
       </div>
     </div>
@@ -111,43 +122,49 @@
 )}
 
         {/* CONDITIONAL RENDERING */}
-        {mentorStatus === 'pending' ? (
-            <div className="flex w-full gap-2">
-            <div className="rounded-sm bg-[#7D53F6] text-white flex-1 text-center p-1">Mentor</div>
-            <div className="rounded-sm bg-orange-500 text-white flex-1 text-center p-1">Pending</div>
-            </div>
-        ) : mentorStatus === 'rejected' ? (
-            <div className="flex w-full gap-2">
-            <div className="rounded-sm bg-[#7D53F6] text-white flex-1 text-center p-1">Mentor</div>
-            <div className="rounded-sm bg-red-500 text-white flex-1 text-center p-1" onClick={()=>setPopup(true)}>Rejected</div>
-            </div>
-        ) : menteeStatus === 'pending' ? (
-            <div className="flex w-full gap-2">
-            <div className="rounded-sm bg-[#2DC4B6] text-white flex-1 text-center p-1">Mentee</div>
-            <div className="rounded-sm bg-orange-200 text-orange-600 flex-1 text-center p-1">Pending</div>
-            </div>
-        ) : menteeStatus === 'ongoing' ? (
-            <div className="flex w-full gap-2">
-            <div className="rounded-sm bg-[#2DC4B6] text-white flex-1 text-center p-1">View Mentor</div>
-            <div className="rounded-sm bg-green-200 text-green-700 flex-1 text-center p-1">Ongoing</div>
-            </div>
-        ) : level >= 2 ? (
-            <div className="flex w-full gap-2">
-            <div
-                onClick={() => HandlePostMentor(localStorage.getItem('email'), course.language_name)}
-                className="rounded-sm bg-[#7D53F6] hover:bg-[#5e3ed1] text-white flex-1 text-center p-1 hover:cursor-pointer"
-            >
-                Mentor
-            </div>
-            <div className="rounded-sm bg-[#2DC4B6] hover:bg-[#25a99f] text-white flex-1 text-center p-1 hover:cursor-pointer">
-                Mentee
-            </div>
-            </div>
-        ) : (
-            <div className="rounded-sm bg-[#2DC4B6] hover:bg-[#25a99f] text-white text-center p-1 hover:cursor-pointer">
-            Mentee
-            </div>
-        )}
+        {course.mentorrequest?.status === 'pending' ? (
+  <div className="flex w-full gap-2">
+    <div className="rounded-sm bg-[#7D53F6] text-white flex-1 text-center p-1">Mentor</div>
+    <div className="rounded-sm bg-orange-500 text-white flex-1 text-center p-1">Pending</div>
+  </div>
+) : course.mentorrequest?.status === 'rejected' ? (
+  <div className="flex w-full gap-2">
+    <div className="rounded-sm bg-[#7D53F6] text-white flex-1 text-center p-1">Mentor</div>
+    <div className="rounded-sm bg-red-500 text-white flex-1 text-center p-1" onClick={() => setPopup(true)}>Rejected</div>
+  </div>
+) : course.menteerequest?.status === 'pending' ? (
+  <div className="flex w-full gap-2">
+    <div className="rounded-sm bg-[#2DC4B6] text-white flex-1 text-center p-1">Mentee</div>
+    <div className="rounded-sm bg-orange-200 text-orange-600 flex-1 text-center p-1">Pending</div>
+  </div>
+) : course.mentor !== 0 ? (
+  <div className="flex w-full gap-2">
+    <div className="rounded-sm bg-[#7D53F6] text-white flex-1 text-center p-1 hover:cursor-pointer hover:bg-[#5e3ed1]">Mentee requests</div>
+    <div className="rounded-sm bg-green-200 text-green-600 flex-1 text-center p-1">Ongoing</div>
+  </div>
+) : course.mentee !==0 ? (
+  <div className="flex w-full gap-2">
+    <div className="rounded-sm bg-[#2DC4B6] text-white flex-1 text-center p-1">Mentee</div>
+    <div className="rounded-sm bg-green-200 text-green-600 flex-1 text-center p-1">Ongoing</div>
+  </div>
+) : level >= 2 ? (
+  <div className="flex w-full gap-2">
+    <div
+      onClick={() => HandlePostMentor(localStorage.getItem('email'), course.language_name)}
+      className="rounded-sm bg-[#7D53F6] hover:bg-[#5e3ed1] text-white flex-1 text-center p-1 hover:cursor-pointer"
+    >
+      Mentor
+    </div>
+    <div className="rounded-sm bg-[#2DC4B6] hover:bg-[#25a99f] text-white flex-1 text-center p-1 hover:cursor-pointer">
+      Mentee
+    </div>
+  </div>
+) : (
+  <div className="rounded-sm bg-[#2DC4B6] hover:bg-[#25a99f] text-white text-center p-1 hover:cursor-pointer">
+    Mentee
+  </div>
+)}
+
         </div>
     );
     }
