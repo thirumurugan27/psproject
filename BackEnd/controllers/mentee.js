@@ -82,7 +82,7 @@ router.post("/request", (req, res) => {
   }
 
   const checkQuery =
-    "SELECT * FROM mentee_requests WHERE student_email = ? AND language_name = ?";
+    "SELECT * FROM mentee_requests WHERE student_email = ? AND language_name = ? AND status = 'pending'";
   db.query(checkQuery, [student_email, language_name], (err, existing) => {
     if (err) {
       return res.status(500).json({ error: err.message });

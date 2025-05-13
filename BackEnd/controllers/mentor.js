@@ -343,8 +343,6 @@ function formatDate(dateString) {
 }
 
 
-
-
 //💻🧑‍💻SLOT book to menteee
 router.post('/slot', (req, res) => {
   const { mentor_email, mentee_email, language_name, start_time } = req.body;
