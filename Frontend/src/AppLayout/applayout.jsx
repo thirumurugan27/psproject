@@ -11,6 +11,8 @@ import NavMentor from '../pages/student/navMentor'
 import NavMentee from '../pages/student/navMentee'
 import Profile from '../pages/student/profile'
 import MentorReview from '../pages/faculty/mentorReview'
+import Mentee_Request from '../pages/student/menteeReq'
+import Mentor_Request from '../pages/student/mentorRej'
 
 function AppLayout() {
     
@@ -46,6 +48,18 @@ function AppLayout() {
             path:"/login/student/profile",
             element:<Protected_s>
                     <Profile/>
+                    </Protected_s>
+        },
+        {
+            path:"/login/student/mycourses/mentee_request",
+            element:<Protected_s>
+                    <Mentee_Request/>
+                    </Protected_s>
+        },
+        {
+            path:"/login/student/mycourses/mentee_request",
+            element:<Protected_s>
+                    <Mentor_Request/>
                     </Protected_s>
         },
         {

@@ -1,5 +1,6 @@
     import React, { useEffect, useState } from 'react';
     import axios from 'axios';
+    import { useNavigate } from 'react-router-dom';
 
     import c from '../student/skills_img/c.png';
     import c_class from '../student/skills_img/c++.png';
@@ -10,9 +11,11 @@
     import python from '../student/skills_img/python.png';
     import uiux from '../student/skills_img/uiux.png';
 
+
     function SkillsCard({ course }) {
       const [popup,setPopup] = useState(false);
       const [mentor, setMentor] = useState();
+      const navigate = useNavigate();
 
     async function HandlePostMentor(email, skill) {
         try {
@@ -139,8 +142,8 @@
   </div>
 ) : course.mentor !== 0 ? (
   <div className="flex w-full gap-2">
-    <div className="rounded-sm bg-[#7D53F6] text-white flex-1 text-center p-1 hover:cursor-pointer hover:bg-[#5e3ed1]">Mentee requests</div>
-    <div className="rounded-sm bg-green-200 text-green-600 flex-1 text-center p-1">Ongoing</div>
+    <div className="rounded-sm bg-[#7D53F6] text-white flex-1 text-center p-1 hover:cursor-pointer hover:bg-[#5e3ed1]" onClick={()=>navigate('/login/student/mycourses/mentee_request')}>Mentee requests</div>
+    <div className="rounded-sm bg-green-200 text-green-600 flex-1 text-center p-1" >Ongoing</div>
   </div>
 ) : course.mentee !==0 ? (
   <div className="flex w-full gap-2">
