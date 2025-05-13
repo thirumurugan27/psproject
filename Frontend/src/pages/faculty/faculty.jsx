@@ -86,15 +86,7 @@ function Faculty() {
     }
 
     async function HandleReject() {
-        try {
-            const status = "rejected";
-            const response = await axios.put('http://localhost:5000/faculty/update-status', {
-                request_id: req_id,
-                status,
-                rejection_reason: feedBack,
-            });
-            console.log('Rejection response: ', response.data);
-            
+        
                 toast.error("Mentor rejected", {
                 position: "top-center",
                 autoClose: 5000,
@@ -106,6 +98,16 @@ function Faculty() {
                 theme: "light",
                 transition: Bounce,
             });
+        try {
+            const status = "rejected";
+            const response = await axios.put('http://localhost:5000/faculty/update-status', {
+                request_id: req_id,
+                status,
+                rejection_reason: feedBack,
+            });
+            console.log('Rejection response: ', response.data);
+            
+
             window.location.reload();
         } catch (err) {
             console.log(err);

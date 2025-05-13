@@ -45,9 +45,7 @@ function Courses() {
           <h2 className="text-xl font-medium mb-4 text-[#5F6388]">
             Courses Available
           </h2>
-
-
-
+          {courses.length===0 && <p className="text-gray-600 text-center">Loading...</p>}
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
             {(mentorReq.length
               ? mentorReq
