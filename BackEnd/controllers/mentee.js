@@ -118,7 +118,6 @@ router.post("/request", (req, res) => {
 //🔍📋to get mentor detail
 router.get("/mentor-detail/:email", (req, res) => {
   const menteeEmail = req.params.email;
-
   const sql = `
     SELECT 
       m.mentor_email,
