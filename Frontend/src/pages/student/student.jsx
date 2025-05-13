@@ -32,7 +32,6 @@ function Courses() {
     }
     GetAllSkill();
   }, []);
-
   return (
     <div className="flex h-screen w-full">
       <Navbar />
@@ -46,7 +45,7 @@ function Courses() {
             Courses Available
           </h2>
           {courses.length===0 && <p className="text-gray-600 text-center">Loading...</p>}
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
             {(mentorReq.length
               ? mentorReq
               : menteeReq.length
@@ -59,6 +58,7 @@ function Courses() {
             ).map((course, index) => (
               <SkillsCard
                 key={index}
+                id={index}
                 course={course}
                 onRejectClick={(course) => {
                   setSelectedRejectedCourse(course);

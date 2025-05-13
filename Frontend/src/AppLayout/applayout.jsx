@@ -57,7 +57,7 @@ function AppLayout() {
                     </Protected_s>
         },
         {
-            path:"/login/student/mycourses/mentee_request",
+            path:"/login/student/mycourses/mentor_request",
             element:<Protected_s>
                     <Mentor_Request/>
                     </Protected_s>
