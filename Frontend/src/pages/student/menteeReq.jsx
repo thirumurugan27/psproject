@@ -62,7 +62,7 @@ return (
         )}
                         
 
-                        {menteeList?.length === 0 && <p className='text-center text-gray-500 lg:text-lg'>No mentee requests available at the moment.</p>}
+                        {menteeList?.length === 0 && <p className='text-center text-gray-500 lg:text-lg'>No mentee requests found.</p>}
                         {
                         menteeList?.length!== 0 && 
                         <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">

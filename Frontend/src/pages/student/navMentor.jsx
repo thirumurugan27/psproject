@@ -21,7 +21,7 @@ function NavMentor() {
             PS Mentorship
         </header>
         <main className="p-6 overflow-y-auto bg-gray-100 flex-1 flex justify-center lg:items-center">
-          {mentor_details.message !== 0 && <p className='text-[#5F6388] text-lg'>{mentor_details.message}</p>}
+          {mentor_details.message !== 0 && <p className='text-[#5F6388] text-lg'>{mentor_details.message || 'No mentorship history found'}</p>}
 
         {
 
