@@ -124,7 +124,8 @@ router.get("/mentor-detail/:email", (req, res) => {
       sl.level AS mentor_level,
       m.start_date,
       m.end_date,
-      m.status
+      m.status,
+      m.menteef
     FROM mentees m
     JOIN userdetails u ON u.email = m.mentor_email
     JOIN student_levels sl ON sl.student_email = m.mentor_email AND sl.language_name = m.language_name
@@ -224,21 +225,39 @@ router.post('/feedback', (req, res) => {
     return res.status(400).json({ error: 'All required fields must be provided' });
   }
 
-  const query = `
+  const insertQuery = `
     INSERT INTO mentor_feedback 
     (mentor_email, mentee_email, language_name, rating, feedback) 
     VALUES (?, ?, ?, ?, ?)
   `;
 
-  db.query(query, [mentor_email, mentee_email, language_name, rating, feedback], (err, result) => {
+  db.query(insertQuery, [mentor_email, mentee_email, language_name, rating, feedback], (err, result) => {
     if (err) {
       console.error('Error posting mentor feedback:', err);
       return res.status(500).json({ error: 'Internal server error' });
     }
 
-    return res.status(200).json({ message: 'feedback to mentor by mentee submitted successfully' });
+    // ✅ Update mentees table to set mentorf = 'yes'
+    const updateQuery = `
+      UPDATE mentees 
+      SET menteef = 'yes' 
+      WHERE mentor_email = ? 
+        AND mentee_email = ? 
+        AND language_name = ?
+        AND status = 'ongoing'
+    `;
+
+    db.query(updateQuery, [mentor_email, mentee_email, language_name], (updateErr) => {
+      if (updateErr) {
+        console.error('Error updating mentorf in mentees table:', updateErr);
+        return res.status(500).json({ error: 'Feedback saved but failed to update mentorf status' });
+      }
+
+      return res.status(200).json({ message: 'Feedback to mentor by mentee submitted successfully and mentorf updated' });
+    });
   });
 });
+
 
 
 

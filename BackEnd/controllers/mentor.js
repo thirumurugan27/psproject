@@ -335,6 +335,7 @@ router.get("/menteeslist/:mentor_email", (req, res) => {
       m.start_date,
       m.end_date,
       m.status AS mentorship_status,
+      m.mentorf, -- 🆕 added here
       s.level_cleared,
       CASE 
         WHEN s.id IS NOT NULL AND s.status = 'ongoing' THEN 'yes'
@@ -364,27 +365,8 @@ router.get("/menteeslist/:mentor_email", (req, res) => {
     }));
 
     res.status(200).json(formattedResults);
-  //   [
-  //     {
-  //       "mentee_email": "student9.al24@bitsathy.ac.in",
-  //       "mentee_name": "student9",
-  //       "language_name": "C",
-  //       "mentee_current_level": 1,
-  //       "slot_booked_level": 2,
-  //       "venue": "Mech Lab 4",
-  //       "slot_date": "15-05-2025",
-  //       "start_time": "10:45:00",
-  //       "end_time": "11:45:00",
-  //       "start_date": "13-05-2025",
-  //       "end_date": "17-05-2025",
-  //       "mentorship_status": "ongoing",
-  //       "level_cleared": "ongoing",
-  //       "slot_booked": "yes"
-  //     }
-  // ]
   });
 });
-
 
 
 // Helper function for date formatting
@@ -514,25 +496,43 @@ router.post('/slot', (req, res) => {
 router.post('/feedback', (req, res) => {
   const { mentee_email, mentor_email, language_name, rating, feedback } = req.body;
 
-  if (!mentee_email || !mentor_email || !language_name || !rating || !feedback ) {
+  if (!mentee_email || !mentor_email || !language_name || !rating || !feedback) {
     return res.status(400).json({ error: 'All required fields must be provided' });
   }
 
-  const query = `
+  const insertQuery = `
     INSERT INTO mentee_feedback 
     (mentee_email, mentor_email, language_name, rating, feedback) 
     VALUES (?, ?, ?, ?, ?)
   `;
 
-  db.query(query, [mentee_email, mentor_email, language_name, rating, feedback], (err, result) => {
+  db.query(insertQuery, [mentee_email, mentor_email, language_name, rating, feedback], (err, result) => {
     if (err) {
       console.error('Error posting mentee feedback:', err);
       return res.status(500).json({ error: 'Internal server error' });
     }
 
-    return res.status(200).json({ message: 'feedback to mentee by mentor submitted successfully' });
+    // ✅ Update mentees table to set menteef = 'yes'
+    const updateQuery = `
+      UPDATE mentees 
+      SET mentorf = 'yes' 
+      WHERE mentee_email = ? 
+        AND mentor_email = ? 
+        AND language_name = ?
+        AND status = 'ongoing'
+    `;
+
+    db.query(updateQuery, [mentee_email, mentor_email, language_name], (updateErr) => {
+      if (updateErr) {
+        console.error('Error updating menteef in mentees table:', updateErr);
+        return res.status(500).json({ error: 'Feedback saved but failed to update menteef status' });
+      }
+
+      return res.status(200).json({ message: 'Feedback to mentee by mentor submitted successfully and menteef updated' });
+    });
   });
 });
+
 
 
 // To get the feedback of a mentee given by previous mentor

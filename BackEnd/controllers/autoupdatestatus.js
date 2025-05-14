@@ -37,7 +37,6 @@ function expireOldMenteeRequests() {
 }
 
 
-
 function expireOldMentors() {
     const query = `
         UPDATE mentors
@@ -50,8 +49,6 @@ function expireOldMentors() {
         else console.log(`✅ ${results.affectedRows} mentorships expired.`);
     });
 }
-
-
 
 // Expire mentees
 function expireOldMentees() {
@@ -67,7 +64,6 @@ function expireOldMentees() {
     });
 }
 
-
 // Function to expire slots
 function expireLevelClearedSlots() {
     const query = `
@@ -75,21 +71,20 @@ function expireLevelClearedSlots() {
       SET level_cleared = 'expired'
       WHERE level_cleared = 'ongoing'
         AND (
-          date < CURDATE() OR 
-          (date = CURDATE() AND end_time < CURTIME())
+          date < CURDATE() OR
+          (date = CURDATE() AND end_time <= CURTIME())
         );
     `;
 
     db.query(query, (err, results) => {
         if (err) {
-            console.error('❌ Error updating level_cleared:', err.message);
+            console.error('❌ Error expiring level_cleared:', err.message);
         } else {
             console.log(`✅ ${results.affectedRows} slot(s) level_cleared set to 'expired'.`);
         }
     });
 }
   
-
 //to exipire the mentoship in slots
 function syncSlotStatusWithMentees() {
     const query = `
