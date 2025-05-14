@@ -118,7 +118,7 @@ router.get("/mentees-requests/:mentor_email", (req, res) => {
       mr.status,
       fb.rating AS latest_rating,
       fb.feedback AS latest_feedback,
-      fb.created_at AS feedback_date,
+      DATE_FORMAT(fb.created_at, '%d-%m-%Y') AS feedback_date,
       fb.mentor_name,
       fb.mentor_email
     FROM mentee_requests mr
@@ -153,6 +153,7 @@ router.get("/mentees-requests/:mentor_email", (req, res) => {
     res.json({ requests });
   });
 });
+
 
 
 
