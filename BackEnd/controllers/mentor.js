@@ -281,19 +281,31 @@ router.delete("/delete", (req, res) => {
 //to see the all mentees
 router.get("/menteeslist/:mentor_email", (req, res) => {
   const { mentor_email } = req.params;
+
   const sql = `
     SELECT 
       m.mentee_email,
       u.name AS mentee_name,
       m.language_name,
-      sl.level AS mentee_level,
+      sl.level AS mentee_current_level,
+      s.level AS slot_booked_level,
       m.start_date,
       m.end_date,
-      m.status
+      m.status AS mentorship_status,
+      s.level_cleared,
+      CASE 
+        WHEN s.id IS NOT NULL AND s.status = 'ongoing' THEN 'yes'
+        ELSE 'no'
+      END AS slot_booked
     FROM mentees m
     JOIN userdetails u ON u.email = m.mentee_email
     JOIN student_levels sl ON sl.student_email = m.mentee_email AND sl.language_name = m.language_name
-    WHERE m.mentor_email = ? AND m.status='ongoing'
+    LEFT JOIN slot s 
+      ON s.mentor_email = m.mentor_email 
+      AND s.mentee_email = m.mentee_email 
+      AND s.language = m.language_name 
+      AND s.status = 'ongoing'
+    WHERE m.mentor_email = ? AND m.status = 'ongoing'
   `;
 
   db.query(sql, [mentor_email], (err, results) => {
@@ -301,11 +313,7 @@ router.get("/menteeslist/:mentor_email", (req, res) => {
       console.error("DB error:", err);
       return res.status(500).json({ message: "Database error" });
     }
-    if (results.length === 0) {
-      return res.status(200).json([]); //naa tha -G
-    }
 
-    // Format start_date and end_date to dd-mm-yyyy
     const formattedResults = results.map((mentee) => ({
       ...mentee,
       start_date: formatDate(mentee.start_date),
@@ -313,16 +321,35 @@ router.get("/menteeslist/:mentor_email", (req, res) => {
     }));
 
     res.status(200).json(formattedResults);
-
-    // "mentee_email": "student10.al24@bitsathy.ac.in",
-    //   "mentee_name": "student10",
-    //   "language_name": "C",
-    //   "mentee_level": 0,
-    //   "start_date": "27-04-2025",
-    //   "end_date": "03-05-2025",
-    //   "status": "ongoing"
+  //   [
+  //     {
+  //       "mentee_email": "student8.al24@bitsathy.ac.in",
+  //       "mentee_name": "student8",
+  //       "language_name": "C",
+  //       "mentee_current_level": 1,
+  //       "slot_booked_level": 2,
+  //       "start_date": "13-05-2025",
+  //       "end_date": "17-05-2025",
+  //       "mentorship_status": "ongoing",
+  //       "level_cleared": "ongoing",
+  //       "slot_booked": "yes"
+  //     },
+  //     {
+  //       "mentee_email": "student9.al24@bitsathy.ac.in",
+  //       "mentee_name": "student9",
+  //       "language_name": "C",
+  //       "mentee_current_level": 1,
+  //       "slot_booked_level": null,
+  //       "start_date": "13-05-2025",
+  //       "end_date": "17-05-2025",
+  //       "mentorship_status": "ongoing",
+  //       "level_cleared": null,
+  //       "slot_booked": "no"
+  //     }
+  // ]
   });
 });
+
 
 
 
