@@ -158,7 +158,7 @@ function SkillsCard({ course }) {
         </div>
       ) : course.role==='mentee' && course.status ==='ongoing' ? (
         <div className="flex w-full gap-2">
-          <div className="rounded-sm bg-[#2DC4B6] text-white flex-1 text-center p-1">mentor</div>
+          <div className="rounded-sm bg-[#2DC4B6] text-white flex-1 text-center p-1">mentee</div>
           <div className="rounded-sm bg-green-200 text-green-600 flex-1 text-center p-1">Ongoing</div>
         </div>
       ) : course.level >= 2 ? (
