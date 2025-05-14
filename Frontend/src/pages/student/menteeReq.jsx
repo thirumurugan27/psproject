@@ -104,7 +104,7 @@ return (
                                             <div className="flex flex-col justify-center sm:ml-4">
                                                 <h3 className="text-xl font-semibold">{data.student_name}</h3>
                                                 <p className="text-base text-gray-600">{data.student_email}</p>   
-                                                <p className='text-gray-600 font-medium my-1'>{data.language_name+' '+' level-'+ ' '}<span className='text-violet-700 font-medium'>{data.level}</span></p>                  
+                                                <p className='text-gray-600 font-medium my-1'>{data.language_name+' '+' level-'+ ' '}<span className='text-gray-600 font-medium'>{data.level}</span></p>                  
                                                 
                                                 {! data.latest_rating && <p>-</p>}
                                                 {data.latest_rating && <StaticStar count={data.latest_rating}/>}
@@ -114,7 +114,7 @@ return (
                                             </div>
                                         <div className='flex gap-2'>
                                                 <div className='text-white flex flex-1 bg-green-600 rounded-sm p-1 justify-center hover:cursor-pointer hover:bg-green-700' onClick={()=>HandleAccept(data.request_id)}>Accept</div>
-                                                <div className='text-white flex flex-1 bg-red-600 rounded-sm p-1 text-center justify-center hover:cursor-pointer hover:bg-red-700' onClick={()=> PostDecline(data.request_id)}>Reject</div>
+                                                <div className='text-white flex flex-1 bg-red-500 rounded-sm p-1 text-center justify-center hover:cursor-pointer hover:bg-red-600' onClick={()=> PostDecline(data.request_id)}>Reject</div>
                                             </div>
                                         </div>
                                 )
