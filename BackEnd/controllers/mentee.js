@@ -205,8 +205,7 @@ router.get("/slot/:mentee_email", (req, res) => {
   const sql = `
     SELECT * 
     FROM slot 
-    WHERE mentee_email = ? 
-      AND level_cleared = 'ongoing' 
+    WHERE mentee_email = ?  
       AND status = 'ongoing'
   `;
 
