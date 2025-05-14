@@ -32,6 +32,7 @@ function Courses() {
     }
     GetAllSkill();
   }, []);
+  console.log("mentee req: ",[menteeReq[0]])
   return (
     <div className="flex h-screen w-full">
       <Navbar />
@@ -45,28 +46,31 @@ function Courses() {
             Courses Available
           </h2>
           {courses.length===0 && <p className="text-gray-600 text-center">Loading...</p>}
-          <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
-            {(mentorReq.length
-              ? mentorReq
-              : menteeReq.length
-              ? menteeReq
-              : mentor.length
-              ? mentor
-              : mentee.length
-              ? mentee
-              : courses
-            ).map((course, index) => (
-              <SkillsCard
-                key={index}
-                id={index}
-                course={course}
-                onRejectClick={(course) => {
-                  setSelectedRejectedCourse(course);
-                  setPopup(true);
-                }}
-              />
-            ))}
-          </div>
+          <div className="grid gap-4 grid-cols-1 lg:grid-cols-4">
+  {(
+    mentorReq.length
+      ? mentorReq
+      : menteeReq.length
+      ? (menteeReq[0] ? [menteeReq[0]] : []) // <-- only first item of menteeReq
+      : mentor.length
+      ? mentor
+      : mentee.length
+      ? mentee
+      : courses
+  ).map((course, index) => (
+    <SkillsCard
+      key={index}
+      id={index}
+      course={course}
+      onRejectClick={(course) => {
+        setSelectedRejectedCourse(course);
+        setPopup(true);
+      }}
+    />
+  ))}
+
+</div>
+
         </main>
       </div>
     </div>

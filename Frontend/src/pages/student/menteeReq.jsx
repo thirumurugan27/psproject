@@ -25,6 +25,35 @@ function Mentee_Request() {
         setId(id);
         console.log('id: ',id)
     }
+
+        async function HandleAccept(id) {
+        try {
+            const postResponse = await axios.post('http://localhost:5000/mentor/update-request', {id:id,status:'accepted'});
+            console.log('POST response:', postResponse.data);
+
+            await new Promise((resolve) => setTimeout(resolve, 200));
+
+            
+            const deleteResponse = await axios.delete('http://localhost:5000/mentor/delete');
+            console.log('DELETE response:', deleteResponse.data);
+            window.location.reload();
+        } catch (error) {
+            console.error('Error in handleSubmit:', error);
+        }
+        }
+
+
+    
+    async function PostDecline(id) {
+        try{
+            const response = await axios.post("http://localhost:5000/mentor/update-request",{id:id,status:'rejected'});
+            console.log("reject post: ",response.data);
+            window.location.reload();
+        }
+        catch(err)
+        {console.log(err)}
+    }
+
 return (
         <div className="flex h-screen w-full">
             <Navbar />
@@ -84,8 +113,8 @@ return (
                                             </div>
                                             </div>
                                         <div className='flex gap-2'>
-                                                <div className='text-white flex flex-1 bg-green-600 rounded-sm p-1 justify-center hover:cursor-pointer hover:bg-green-700'>Accept</div>
-                                                <div className='text-white flex flex-1 bg-red-600 rounded-sm p-1 text-center justify-center hover:cursor-pointer hover:bg-red-700'>Reject</div>
+                                                <div className='text-white flex flex-1 bg-green-600 rounded-sm p-1 justify-center hover:cursor-pointer hover:bg-green-700' onClick={()=>HandleAccept(data.request_id)}>Accept</div>
+                                                <div className='text-white flex flex-1 bg-red-600 rounded-sm p-1 text-center justify-center hover:cursor-pointer hover:bg-red-700' onClick={()=> PostDecline(data.request_id)}>Reject</div>
                                             </div>
                                         </div>
                                 )

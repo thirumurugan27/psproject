@@ -129,7 +129,7 @@ function SkillsCard({ course }) {
       {course.role === 'mentor' && course.status === 'pending' ? (
         <div className="flex w-full gap-2">
           <div className="rounded-sm bg-[#7D53F6] text-white flex-1 text-center p-1">Mentor</div>
-          <div className="rounded-sm bg-orange-500 text-white flex-1 text-center p-1">Pending</div>
+          <div className="rounded-sm bg-orange-400 text-white flex-1 text-center p-1">Pending</div>
         </div>
       ) : course.role === 'mentor' && course.status === 'rejected' ? (
         <div className="flex w-full gap-2">
@@ -143,8 +143,8 @@ function SkillsCard({ course }) {
         </div>
       ) : course.role==='mentee' && course.status === 'pending' ? (
         <div className="flex w-full gap-2">
-          <div className="rounded-sm bg-[#2DC4B6] text-white flex-1 text-center p-1">Mentee</div>
-          <div className="rounded-sm bg-orange-200 text-orange-600 flex-1 text-center p-1">Pending</div>
+          <div className="rounded-sm bg-[#2DC4B6] text-white flex-1 text-center p-1 hover:cursor-pointer hover:bg-[#25a99f]" onClick={()=>{navigate('/login/student/mycourses/mentor_request'),localStorage.setItem('language_name',course.language_name)}}>Mentee</div>
+          <div className="rounded-sm bg-orange-400 text-white flex-1 text-center p-1">Pending</div>
         </div>
       ) : course.role==='mentor' && course.status==='ongoing' ? (
         <div className="flex w-full gap-2">
@@ -158,7 +158,7 @@ function SkillsCard({ course }) {
         </div>
       ) : course.role==='mentee' && course.status ==='ongoing' ? (
         <div className="flex w-full gap-2">
-          <div className="rounded-sm bg-[#2DC4B6] text-white flex-1 text-center p-1">Request mentor(s)</div>
+          <div className="rounded-sm bg-[#2DC4B6] text-white flex-1 text-center p-1">mentor</div>
           <div className="rounded-sm bg-green-200 text-green-600 flex-1 text-center p-1">Ongoing</div>
         </div>
       ) : course.level >= 2 ? (

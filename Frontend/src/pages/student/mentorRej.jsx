@@ -65,6 +65,7 @@ function Mentor_Request() {
         try{
             const response = await axios.post('http://localhost:5000/mentee/request',{ student_email:localStorage.getItem('email') , mentor_email:mentor_email , language_name:language });
             console.log('mentor request sent status...',response.data);
+            window.location.reload();
         }
         catch(err){
             console.log(err);
