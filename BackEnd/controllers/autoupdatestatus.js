@@ -116,23 +116,17 @@ function syncSlotStatusWithMentees() {
     });
 }
 
-function settimezone(){
-    db.query("SET time_zone = '+05:30'", (err) => {
-        if (err) {
-            console.error("❌Failed to set time zone:", err);
-        } else {
-            console.log("✅Time zone set to IST (Asia/Kolkata)");
-        }
-    });
+// function settimezone(){
+    
       
-}
+// }
   
 
 
 
 // Function to run all expiration tasks
 function runExpireFunctions() {
-    settimezone();
+    // settimezone();
     expireOldMentorRequests();
     expireOldMenteeRequests();
     expireOldMentors();
