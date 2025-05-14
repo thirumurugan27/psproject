@@ -1,4 +1,5 @@
 require("dotenv").config();
+const moment = require('moment-timezone');
 const mysql = require("mysql2");
 
 const db = mysql.createConnection({
@@ -12,6 +13,15 @@ const db = mysql.createConnection({
     queueLimit: 0,
 });
 
+//set indian time zone
+db.query("SET time_zone = '+05:30'", (err) => {
+  if (err) {
+    console.error("❌ Failed to set time zone:", err);
+  } else {
+    console.log("✅ Time zone set to IST (Asia/Kolkata)");
+  }
+});
+
 db.connect((err) => {
   if (err) {
     console.error("❌ Database connection failed:", err);
@@ -20,4 +30,15 @@ db.connect((err) => {
   console.log("✅ Connected to MySQL!");
 });
 
+
+// to get current time
+db.query("SELECT NOW()", (err, results) => {
+  if (err) {
+    console.error("❌ Error fetching time:", err);
+    return;
+  }
+
+  // Log the result to console
+  console.log("✅ Current Time:", results[0]['NOW()']);
+});
 module.exports = db;
