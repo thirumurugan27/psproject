@@ -129,12 +129,30 @@ function NavMentee() {
                         </p>
 
                         {isBooked && (
-                          <p
-                            className="text-gray-700 hover:underline mt-3 hover:cursor-pointer"
-                            onClick={() => handleViewVenue(data)}
-                          >
-                            View Venue
-                          </p>
+                          <>
+                              <span
+                                className={`w-fit mt-1 px-4 py-1 rounded-full font-semibold text-sm ${
+                                  data.level_cleared === 'ongoing'
+                                    ? 'bg-green-100 text-green-700'
+                                    : data.level_cleared === 'no'
+                                    ? 'bg-red-500 text-white'
+                                    : 'bg-green-700 text-white'
+                                }`}
+                              >
+                              {data.level_cleared === 'no'
+                                ? 'Slot: Failed'
+                                : data.level_cleared === 'yes'
+                                ? 'Slot: Completed'
+                                : 'Slot: Ongoing'}
+                            </span>
+
+                            {data.level_cleared === 'ongoing' && <p
+                              className="text-gray-700 hover:underline mt-3 hover:cursor-pointer"
+                              onClick={() => handleViewVenue(data)}
+                            >
+                              View Venue
+                            </p>}
+                        </>
                         )}
                       </div>
                     </div>
@@ -149,6 +167,14 @@ function NavMentee() {
                         </button>
                       </div>
                     )}
+                    
+                      {isBooked &&
+                        data.level_cleared !== 'ongoing' && data.mentorf === 'no' &&
+                        <div className='mt-4 rounded-sm bg-[#7D53F6] hover:cursor-pointer p-2 text-center text-white' >
+                          Feed back
+                        </div>
+                      }
+
                   </div>
                 );
               })}
