@@ -19,6 +19,7 @@ function NavMentor() {
   useEffect(() => {
     async function GetMentorDetail() {
       const response = await axios.get(`http://localhost:5000/mentee/mentor-detail/${mentee_email}`);
+      console.log('mentor details for mentee: ',response.data)
       SetMentor_details(response.data);
     }
 
@@ -149,7 +150,7 @@ function NavMentor() {
       >
         View Venue
       </button>
-    ) : (
+    ) : (mentor_details[0]?.menteef =='no' &&
       <button
         onClick={() => {
           setSelectedVenue(mentorBooked_slot[0]);
