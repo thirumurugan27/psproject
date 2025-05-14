@@ -174,61 +174,97 @@ router.post("/update-request", (req, res) => {
       }
 
       if (requestResult.length === 0) {
-        return res.status(404).json({ message: "No pending request found with that ID" });
+        return res
+          .status(404)
+          .json({ message: "No pending request found with that ID" });
       }
 
       const request = requestResult[0];
       const { student_email, mentor_email, language_name } = request;
 
       if (status === "accepted") {
-        // Step 2: Accept the request
+        // Step 2: Check if there's already an ongoing mentorship between them
         db.query(
-          'UPDATE mentee_requests SET status = "accepted" WHERE id = ?',
-          [id],
-          (err) => {
+          `SELECT * FROM mentees
+           WHERE mentor_email = ? AND mentee_email = ? AND language_name = ? AND status = 'ongoing'`,
+          [mentor_email, student_email, language_name],
+          (err, existingOngoing) => {
             if (err) {
               return res.status(500).json({ error: err.message });
             }
 
-            // Step 3: Get mentor's mentorship dates
+            if (existingOngoing.length > 0) {
+              return res.status(400).json({
+                message:
+                  "There is already an ongoing mentorship between this mentor and mentee for the same language.",
+              });
+            }
+
+            // Step 3: Accept the request
             db.query(
-              'SELECT start_date, end_date FROM mentors WHERE student_email = ? AND language_name = ? AND status = "ongoing"',
-              [mentor_email, language_name],
-              (err, dateResult) => {
+              'UPDATE mentee_requests SET status = "accepted" WHERE id = ?',
+              [id],
+              (err) => {
                 if (err) {
                   return res.status(500).json({ error: err.message });
                 }
 
-                if (dateResult.length === 0) {
-                  return res.status(400).json({
-                    message: "Mentor's mentorship dates not found.",
-                  });
-                }
-
-                const { start_date, end_date } = dateResult[0];
-
-                // Step 4: Insert into mentees table
+                // Step 4: Get mentor's mentorship dates
                 db.query(
-                  'INSERT INTO mentees (mentor_email, mentee_email, language_name, start_date, end_date, status) VALUES (?, ?, ?, ?, ?, "ongoing")',
-                  [mentor_email, student_email, language_name, start_date, end_date],
-                  (err) => {
+                  `SELECT start_date, end_date FROM mentors
+                   WHERE student_email = ? AND language_name = ? AND status = "ongoing"`,
+                  [mentor_email, language_name],
+                  (err, dateResult) => {
                     if (err) {
                       return res.status(500).json({ error: err.message });
                     }
 
-                    // Step 5: Mark other pending requests by same student as deleted
+                    if (dateResult.length === 0) {
+                      return res.status(400).json({
+                        message: "Mentor's mentorship dates not found.",
+                      });
+                    }
+
+                    const { start_date, end_date } = dateResult[0];
+
+                    // Step 5: Insert new mentorship
                     db.query(
-                      'UPDATE mentee_requests SET status = "delete" WHERE student_email = ? AND status = "pending" AND id != ?',
-                      [student_email, id],
+                      `INSERT INTO mentees
+                       (mentor_email, mentee_email, language_name, start_date, end_date, status)
+                       VALUES (?, ?, ?, ?, ?, "ongoing")`,
+                      [
+                        mentor_email,
+                        student_email,
+                        language_name,
+                        start_date,
+                        end_date,
+                      ],
                       (err) => {
                         if (err) {
-                          return res.status(500).json({ error: err.message });
+                          return res
+                            .status(500)
+                            .json({ error: err.message });
                         }
 
-                        return res.json({
-                          message:
-                            "Mentee request accepted. Mentee added and other mentor requests marked as deleted.",
-                        });
+                        // Step 6: Delete other pending requests
+                        db.query(
+                          `UPDATE mentee_requests
+                           SET status = "delete"
+                           WHERE student_email = ? AND status = "pending" AND id != ?`,
+                          [student_email, id],
+                          (err) => {
+                            if (err) {
+                              return res
+                                .status(500)
+                                .json({ error: err.message });
+                            }
+
+                            return res.json({
+                              message:
+                                "Mentee request accepted. Mentee added and other mentor requests marked as deleted.",
+                            });
+                          }
+                        );
                       }
                     );
                   }
@@ -238,7 +274,7 @@ router.post("/update-request", (req, res) => {
           }
         );
       } else if (status === "rejected") {
-        // Reject request
+        // Reject the request
         db.query(
           'UPDATE mentee_requests SET status = "rejected", rejection_reason = ? WHERE id = ?',
           [rejection_reason || "Not specified", id],
@@ -254,12 +290,14 @@ router.post("/update-request", (req, res) => {
         );
       } else {
         return res.status(400).json({
-          message: 'Invalid status value. Use "accepted" or "rejected"',
+          message: 'Invalid status value. Use "accepted" or "rejected".',
         });
       }
     }
   );
 });
+
+
 
 
 //after accepting the request, delete the request
