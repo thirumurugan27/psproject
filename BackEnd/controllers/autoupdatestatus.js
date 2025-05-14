@@ -71,39 +71,48 @@ function expireOldMentees() {
 // Function to expire slot statuses based on current date and time
 function expireSlotStatus() {
     const query = `
-    UPDATE slot s
-    JOIN (
-      SELECT mentor_email, mentee_email, language_name, status
-      FROM mentees m
-      WHERE (mentor_email, mentee_email, language_name, start_date) IN (
-        SELECT mentor_email, mentee_email, language_name, MAX(start_date)
-        FROM mentees
-        GROUP BY mentor_email, mentee_email, language_name
-      )
-    ) latest_m
-    ON s.mentor_email = latest_m.mentor_email 
-       AND s.mentee_email = latest_m.mentee_email 
-       AND s.language = latest_m.language_name
-    SET 
-      s.level_cleared = CASE 
-                          WHEN s.date <= CURDATE() AND s.end_time <= CURTIME() THEN 'expired'
-                          ELSE s.level_cleared 
-                        END,
-      s.status = CASE 
-                  WHEN latest_m.status = 'expired' THEN 'expired'
-                  ELSE s.status
-                END
-    WHERE s.status = 'ongoing' AND s.level_cleared='ongoing';
-  `;
+      UPDATE slot s
+      JOIN (
+        SELECT m1.*
+        FROM mentees m1
+        JOIN (
+          SELECT mentor_email, mentee_email, language_name, MAX(start_date) AS latest_start
+          FROM mentees
+          GROUP BY mentor_email, mentee_email, language_name
+        ) m2 ON m1.mentor_email = m2.mentor_email 
+             AND m1.mentee_email = m2.mentee_email 
+             AND m1.language_name = m2.language_name 
+             AND m1.start_date = m2.latest_start
+      ) latest_m ON s.mentor_email = latest_m.mentor_email 
+                AND s.mentee_email = latest_m.mentee_email 
+                AND s.language = latest_m.language_name
+      SET 
+        s.level_cleared = CASE 
+          WHEN s.level_cleared = 'ongoing' AND (
+            s.date < CURDATE() OR 
+            (s.date = CURDATE() AND s.end_time < CURTIME())
+          ) THEN 'expired'
+          ELSE s.level_cleared
+        END,
+        s.status = latest_m.status
+      WHERE s.status != latest_m.status 
+         OR (
+            s.level_cleared = 'ongoing' AND (
+              s.date < CURDATE() OR 
+              (s.date = CURDATE() AND s.end_time < CURTIME())
+            )
+         );
+    `;
 
     db.query(query, (err, results) => {
         if (err) {
-            console.error('❌ Error expiring slot status:', err.message);
+            console.error('❌ Error syncing slot status:', err.message);
         } else {
-            console.log(`✅ ${results.affectedRows} slot statuses and level_cleared updated.`);
+            console.log(`✅ ${results.affectedRows} slot(s) updated with synced status and level_cleared.`);
         }
     });
 }
+  
 
 
 
