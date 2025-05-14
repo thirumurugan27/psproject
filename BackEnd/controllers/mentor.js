@@ -289,6 +289,10 @@ router.get("/menteeslist/:mentor_email", (req, res) => {
       m.language_name,
       sl.level AS mentee_current_level,
       s.level AS slot_booked_level,
+      s.slot_venue AS venue,
+      DATE_FORMAT(s.date, '%d-%m-%Y') as slot_date,
+      s.start_time,
+      s.end_time,
       m.start_date,
       m.end_date,
       m.status AS mentorship_status,
@@ -323,33 +327,24 @@ router.get("/menteeslist/:mentor_email", (req, res) => {
     res.status(200).json(formattedResults);
   //   [
   //     {
-  //       "mentee_email": "student8.al24@bitsathy.ac.in",
-  //       "mentee_name": "student8",
+  //       "mentee_email": "student9.al24@bitsathy.ac.in",
+  //       "mentee_name": "student9",
   //       "language_name": "C",
   //       "mentee_current_level": 1,
   //       "slot_booked_level": 2,
+  //       "venue": "Mech Lab 4",
+  //       "slot_date": "15-05-2025",
+  //       "start_time": "10:45:00",
+  //       "end_time": "11:45:00",
   //       "start_date": "13-05-2025",
   //       "end_date": "17-05-2025",
   //       "mentorship_status": "ongoing",
   //       "level_cleared": "ongoing",
   //       "slot_booked": "yes"
-  //     },
-  //     {
-  //       "mentee_email": "student9.al24@bitsathy.ac.in",
-  //       "mentee_name": "student9",
-  //       "language_name": "C",
-  //       "mentee_current_level": 1,
-  //       "slot_booked_level": null,
-  //       "start_date": "13-05-2025",
-  //       "end_date": "17-05-2025",
-  //       "mentorship_status": "ongoing",
-  //       "level_cleared": null,
-  //       "slot_booked": "no"
   //     }
   // ]
   });
 });
-
 
 
 
