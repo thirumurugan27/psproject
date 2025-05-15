@@ -77,6 +77,7 @@ function NavMentee() {
       setSlotPopup(false);
       setSelectedSlot('');
       setCurrentMentee(null);
+      window.location.reload()
     } catch (error) {
       console.error('Error booking slot:', error);
       alert('❌ Failed to book slot. Please try again.');
@@ -178,7 +179,7 @@ function NavMentee() {
 
                     {!isBooked && (
                       <div className="mt-4">
-                        <button className="w-full text-white bg-[#7D53F6] hover:bg-[#683FE0] py-2 rounded" onClick={() => openSlotPopup(data)}>
+                        <button className="w-full text-white bg-[#7D53F6] hover:bg-[#683FE0] hover:cursor-pointer py-2 rounded" onClick={() => openSlotPopup(data)}>
                           Book a Slot
                         </button>
                       </div>
@@ -199,25 +200,20 @@ function NavMentee() {
 
       {/* Slot Booking Popup */}
       {slotPopup && (
-        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center z-50">
-          <div className="bg-white rounded-lg p-6 w-[90%] max-w-md">
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex justify-center items-center z-50" onClick={()=>{setSlotPopup(false); setSelectedSlot('');  setCurrentMentee(null);}}>
+          <div className="bg-white rounded-lg p-6 w-[90%] max-w-md" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-xl font-semibold mb-4">Book Slot</h2>
             <label className="block mb-2 text-gray-700 font-medium">Slot Timings</label>
-            <select value={selectedSlot} onChange={(e) => setSelectedSlot(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded mb-4">
+            <select value={selectedSlot} onChange={(e) => setSelectedSlot(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded mb-4 bg-[#F3F4F6]">
               <option value="">Select a time</option>
               {timeSlots.map((time, idx) => (
-                <option key={idx} value={time}>
+                <option key={idx} value={time} >
                   {`${time.slice(0, 5)} - ${(parseInt(time.slice(0, 2)) + 1).toString().padStart(2, '0')}:${time.slice(3, 5)}`}
                 </option>
               ))}
             </select>
             <div className="flex justify-between gap-4">
-              <button className="bg-gray-300 text-gray-800 py-2 px-4 rounded w-1/2" onClick={() => {
-                setSlotPopup(false);
-                setSelectedSlot('');
-                setCurrentMentee(null);
-              }}>Cancel</button>
-              <button className="bg-[#7D53F6] text-white py-2 px-4 rounded w-1/2" onClick={handleBookSlot}>Book Now</button>
+              <button className="flex-1 bg-[#7D53F6] text-white py-2 px-4 rounded w-1/2 hover:cursor-pointer"  onClick={handleBookSlot}>Book Now</button>
             </div>
           </div>
         </div>
@@ -225,15 +221,15 @@ function NavMentee() {
 
       {/* Venue Popup */}
       {showVenuePopup && selectedVenue && (
-        <div className="fixed top-0 left-0 w-full h-full bg-[rgba(0,0,0,0.5)] flex justify-center items-center z-50">
-          <div className="bg-white rounded-lg p-6 lg:w-1/3 ">
+        <div className="fixed top-0 left-0 w-full h-full bg-[rgba(0,0,0,0.5)] flex justify-center items-center z-50" onClick={() => setShowVenuePopup(false)}>
+          <div className="bg-white rounded-lg p-6 lg:w-1/3 " onClick={(e) => e.stopPropagation()}>
             <h2 className="text-2xl font-semibold mb-4">Venue Details</h2>
             <p><strong>Booking Date:</strong> {selectedVenue.booking_date}</p>
             <p><strong>Start Time:</strong> {selectedVenue.start_time}</p>
             <p><strong>End Time:</strong> {selectedVenue.end_time}</p>
             <p><strong>Level:</strong> {selectedVenue.level}</p>
             <p><strong>Venue:</strong> {selectedVenue.venue}</p>
-            <button className="mt-4 w-full bg-[#7D53F6] text-white py-2 rounded" onClick={() => setShowVenuePopup(false)}>Close</button>
+            <button className="mt-4 w-full bg-[#7D53F6] text-white py-2 rounded hover:cursor-pointer" onClick={() => setShowVenuePopup(false)}>Close</button>
           </div>
         </div>
       )}
