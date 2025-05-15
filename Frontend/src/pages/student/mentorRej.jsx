@@ -111,7 +111,7 @@ function Mentor_Request() {
                                     </div>
                                     <div className={`text-white rounded-sm bg-[#7D53F6] p-2 hover:cursor-pointer text-center ${!avgRating || avgRating===0 ? 'mt-4':'mt-2'}`} 
                                     onClick={()=>PostMentee_req_to_mentor(data.mentor_email , data.language_name)}
-                                    >Request for mentor</div>
+                                    >Request to mentor</div>
 
                                 </div>
                             );
