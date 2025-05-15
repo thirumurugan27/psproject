@@ -1,15 +1,8 @@
 {
   "dependencies": {
-<<<<<<< HEAD
     "@tailwindcss/vite": "^4.1.7",
     "lucide-react": "^0.508.0",
     "react-toastify": "^11.0.5",
     "tailwindcss": "^4.1.7"
-=======
-    "@tailwindcss/vite": "^4.1.6",
-    "lucide-react": "^0.508.0",
-    "react-toastify": "^11.0.5",
-    "tailwindcss": "^4.1.6"
->>>>>>> c60e819e9011eae81382b5981e6080d31b46d5fa
   }
 }
