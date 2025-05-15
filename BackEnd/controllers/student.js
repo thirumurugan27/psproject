@@ -14,10 +14,24 @@ router.get("/levels/:email", (req, res) => {
     levels: []
   };
 
-  const sqlAllLevels = `
+  const sqlAllLevels = `  
     SELECT language_name, level 
     FROM student_levels 
     WHERE student_email = ?
+      AND language_name NOT IN (
+        SELECT language_name 
+        FROM mentor_requests 
+        WHERE student_email = ? 
+          AND status = 'rejected'
+          AND DATEDIFF(CURDATE(), request_date) <= 6
+      )
+      AND language_name NOT IN (
+        SELECT language_name 
+        FROM mentee_requests 
+        WHERE student_email = ? 
+          AND status IN ('pending', 'rejected')
+          AND DATEDIFF(CURDATE(), request_date) < 6
+      )
     ORDER BY language_name
   `;
 
@@ -95,8 +109,8 @@ router.get("/levels/:email", (req, res) => {
       AND DATEDIFF(CURDATE(), mr.request_date) < 6
   `;
 
-  // Step 1: Get all student levels
-  db.query(sqlAllLevels, [email], (err, levels) => {
+  // Step 1: Get all student levels (pass all 3 placeholders)
+  db.query(sqlAllLevels, [email, email, email], (err, levels) => {
     if (err) return res.status(500).json({ error: "Levels query error", details: err.message });
 
     const filteredLevels = [];
@@ -161,7 +175,6 @@ router.get("/levels/:email", (req, res) => {
           if (err) return res.status(500).json({ error: "Rejection fetch error", details: err.message });
 
           const rejectedMentors = rejected.map(r => r.mentor_email);
-
           const allRejected = mentorEmails.every(m => rejectedMentors.includes(m));
 
           if (!allRejected) {
@@ -176,6 +189,7 @@ router.get("/levels/:email", (req, res) => {
     checkMentorsForLanguage(0); // Recursive async check
   });
 });
+
 
 //return
 // {

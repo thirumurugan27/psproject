@@ -19,7 +19,6 @@ function expireOldMentorRequests() {
     });
 }
 
-
 // Function to expire old mentee requests
 function expireOldMenteeRequests() {
     const query = `
@@ -116,11 +115,48 @@ function syncSlotStatusWithMentees() {
     });
 }
 
-// function settimezone(){
-    
-      
-// }
-  
+
+// delete expired data from all tables
+
+function cleanupExpiredData(req, res) {
+    const queries = [
+        { sql: "DELETE FROM mentors WHERE status = 'expired'", table: 'mentors', emoji: '🧑‍🏫' },
+        { sql: "DELETE FROM mentees WHERE status = 'expired'", table: 'mentees', emoji: '🧑‍🎓' },
+        { sql: "DELETE FROM slot WHERE status = 'expired'", table: 'slot', emoji: '⏰' },
+        {
+            sql: "DELETE FROM mentor_requests WHERE DATEDIFF(CURDATE(), request_date) >= 8",
+            table: 'mentor_requests',
+            emoji: '📨'
+        },
+        {
+            sql: "DELETE FROM mentee_requests WHERE DATEDIFF(CURDATE(), request_date) >= 8",
+            table: 'mentee_requests',
+            emoji: '📩'
+        }
+    ];
+
+    let completed = 0;
+
+    queries.forEach(({ sql, table, emoji }) => {
+        db.query(sql, (err, result) => {
+            completed++;
+
+            if (err) {
+                console.error(`${emoji} Error deleting from ${table}:`, err);
+            } else {
+                console.log(`${emoji} Deleted ${result.affectedRows} row(s) from ${table}`);
+            }
+
+            if (completed === queries.length) {
+                if (res && typeof res.status === 'function') {
+                    res.status(200).json({ message: '🧹 Cleanup completed' });
+                } else {
+                    console.log('🧹 Cleanup completed');
+                }
+            }
+        });
+    });
+}
 
 
 
@@ -133,7 +169,12 @@ function runExpireFunctions() {
     expireOldMentees();
     expireLevelClearedSlots();
     syncSlotStatusWithMentees();
+    cleanupExpiredData();
+   
 }
+
+
+
 
 // Export the function so it can be used in other files
 module.exports = { runExpireFunctions };
