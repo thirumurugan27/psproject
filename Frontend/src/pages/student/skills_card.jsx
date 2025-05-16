@@ -75,7 +75,7 @@ function SkillsCard({ course }) {
       />
       <div className="p-3">
         <h2 className="text-lg font-medium text-gray-700">
-          {course.language_name} level - {level}
+          {course.language_name} level - {Number(level)+1}
         </h2>
       </div>
 

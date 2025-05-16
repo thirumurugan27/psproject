@@ -104,7 +104,7 @@ return (
                                             <div className="flex flex-col justify-center sm:ml-4">
                                                 <h3 className="text-xl font-semibold">{data.student_name}</h3>
                                                 <p className="text-base text-gray-600">{data.student_email}</p>   
-                                                <p className='text-gray-600 font-medium my-1'>{data.language_name+' '+' level-'+ ' '}<span className='text-gray-600 font-medium'>{data.level}</span></p>                  
+                                                <p className='text-gray-600 font-medium my-1'>{data.language_name+' '+' level-'+ ' '}<span className='text-gray-600 font-medium'>{Number(data.level)+1}</span></p>                  
                                                 
                                                 {! data.latest_rating && <p>-</p>}
                                                 {data.latest_rating && <StaticStar count={data.latest_rating}/>}
