@@ -40,4 +40,5 @@ db.query("SELECT NOW()", (err, results) => {
   // Log the result to console
   console.log("✅ Current Time:", results[0]['NOW()']);
 });
+
 module.exports = db;

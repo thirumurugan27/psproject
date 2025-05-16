@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db");
 const moment = require('moment');
-const { format } = require("mysql2");
 
 // Student can send request to faculty for mentorship
 router.post("/send-request", (req, res) => {
@@ -385,7 +384,7 @@ router.post('/slot', (req, res) => {
   let bookingDate = moment(today).add(1, 'days');
 
   // If tomorrow is Saturday (6) or Sunday (0), use today
-  if (bookingDate.day() === 6 || bookingDate.day() === 0) {
+  if (bookingDate.day() === 0) {
     bookingDate = today;
   }
 
@@ -624,9 +623,5 @@ router.get("/slots/:email", (req, res) => {
     res.status(200).json(results);
   });
 });
-
-
-
-
 
 module.exports = router;

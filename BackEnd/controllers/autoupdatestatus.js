@@ -19,6 +19,7 @@ function expireOldMentorRequests() {
     });
 }
 
+
 // Function to expire old mentee requests
 function expireOldMenteeRequests() {
     const query = `
@@ -48,6 +49,7 @@ function expireOldMentors() {
         else console.log(`✅ ${results.affectedRows} mentorships expired.`);
     });
 }
+
 
 // Expire mentees
 function expireOldMentees() {
@@ -84,6 +86,7 @@ function expireLevelClearedSlots() {
     });
 }
   
+
 //to exipire the mentoship in slots
 function syncSlotStatusWithMentees() {
     const query = `
@@ -117,7 +120,6 @@ function syncSlotStatusWithMentees() {
 
 
 // delete expired data from all tables
-
 function cleanupExpiredData(req, res) {
     const queries = [
         { sql: "DELETE FROM mentors WHERE status = 'expired'", table: 'mentors', emoji: '🧑‍🏫' },
@@ -157,7 +159,6 @@ function cleanupExpiredData(req, res) {
         });
     });
 }
-
 
 
 // Function to run all expiration tasks

@@ -59,7 +59,7 @@ return (
                     <tr key={index} className={`border-t border-gray-500 ${index%2 !== 0 && 'bg-gray-200'}`}>
                         <td className="p-2">{data.mentee_name}</td>
                         <td className="p-2">{data.mentee_email}</td>
-                        <td className="p-2">{data.language}</td>
+                        <td className="p-2">{data.language_name}</td>
                         <td className="p-2">{data.level}</td>
                         <td className="p-2">{data.level_rp}</td>
                     </tr>
