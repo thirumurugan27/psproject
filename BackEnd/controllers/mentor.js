@@ -155,8 +155,6 @@ router.get("/mentees-requests/:mentor_email", (req, res) => {
 });
 
 
-
-
 //To accept and reject the request(Note use DELETE method to delete the request NEXT to This code)
 router.post("/update-request", (req, res) => {
   const { id, status, rejection_reason } = req.body;
@@ -299,8 +297,6 @@ router.post("/update-request", (req, res) => {
 });
 
 
-
-
 //after accepting the request, delete the request
 router.delete("/delete", (req, res) => {
   const query = `DELETE FROM mentee_requests WHERE status = 'delete'`;
@@ -337,6 +333,7 @@ router.get("/menteeslist/:mentor_email", (req, res) => {
       m.status AS mentorship_status,
       m.mentorf, -- 🆕 added here
       s.level_cleared,
+      s.id as slot_id,
       CASE 
         WHEN s.id IS NOT NULL AND s.status = 'ongoing' THEN 'yes'
         ELSE 'no'
