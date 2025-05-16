@@ -159,10 +159,14 @@ function NavMentee() {
                                 ? 'bg-green-100 text-green-700'
                                 : data.level_cleared === 'no'
                                 ? 'bg-red-500 text-white'
-                                : 'bg-green-700 text-white'
+                                : data.level_cleared === 'expired'?
+                                'bg-red-500 text-white':
+                                'bg-green-700 text-white'
                             }`}>
                               {data.level_cleared === 'no' ? 'Slot: Failed' :
-                              data.level_cleared === 'yes' ? 'Slot: Completed' : 'Slot: Ongoing'}
+                              data.level_cleared === 'yes' ? 'Slot: Completed' :
+                              data.level_cleared === 'expired' ? 'Slot: Expired' :
+                              'Slot: Ongoing'}
                               
                             </span>
                             {data.mentorf === 'yes' && <span className='w-fit mt-1 px-4 py-1 rounded-full font-semibold text-sm bg-emerald-500 text-white ml-2'>Feedback Sent</span>}
@@ -185,7 +189,7 @@ function NavMentee() {
                       </div>
                     )}
 
-                    {isBooked && data.level_cleared !== 'ongoing' && data.mentorf === 'no' && (
+                    {isBooked && (data.level_cleared === 'yes' || data.level_cleared === 'no') && data.mentorf === 'no' && (
                       <div className='mt-4 rounded-sm bg-[#7D53F6] hover:cursor-pointer p-2 text-center text-white' onClick={() => handleOpenFeedback(data)}>
                         Feedback
                       </div>
