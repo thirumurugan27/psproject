@@ -575,52 +575,30 @@ router.get('/mentorshiprp/:mentorEmail', (req, res) => {
 
   const query = `
     SELECT 
-        s.mentee_email,
-        u.name AS mentee_name,
-        s.language,
-        s.level,
-        CASE s.level
-            WHEN 1 THEN l.l1rp*0.1
-            WHEN 2 THEN l.l2rp*0.1
-            WHEN 3 THEN l.l3rp*0.1
-            WHEN 4 THEN l.l4rp*0.1
-            WHEN 5 THEN l.l5rp*0.1
-            WHEN 6 THEN l.l6rp*0.1
-            WHEN 7 THEN l.l7rp*0.1
-        END AS level_rp
-    FROM 
-        slot s
-    JOIN 
-        userdetails u ON s.mentee_email = u.email
-    JOIN 
-        languages l ON s.language = l.language_name
-    WHERE 
-        s.mentor_email = ?
-        AND s.level_cleared = 'yes'
-    ORDER BY s.id DESC;
+      rp.mentee_email, 
+      ud.name AS mentee_name, 
+      rp.language_name, 
+      rp.level , 
+      rp.mentorship_points as level_rp
+    FROM reward_points rp
+    JOIN userdetails ud ON rp.mentee_email = ud.email
+    WHERE rp.mentor_email = ? AND rp.student_email != rp.mentee_email
+    ORDER BY rp.last_updated DESC
   `;
 
   db.query(query, [mentorEmail], (err, results) => {
     if (err) {
-      console.error('Error fetching cleared mentees:', err);
-      return res.status(500).json({ message: 'Server error' });
+      console.error('Database error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
     }
 
-    res.status(200).json({ mentees: results });
-    //return
-  //   {
-  //     "mentees": [
-  //       {
-  //         "mentee_email": "student1.al24@bitsathy.ac.in",
-  //         "mentee_name": "student1",
-  //         "language": "Java",
-  //         "level": 1,
-  //         "level_rp": "30.0"
-  //       }
-  //     ]
-  // }
+    res.json({
+      mentees: results
+    });
   });
 });
+
 
 router.get("/slots/:email", (req, res) => {
   const mentorEmail = req.params.email;
