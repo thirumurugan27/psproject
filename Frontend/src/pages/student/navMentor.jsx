@@ -12,7 +12,7 @@ function NavMentor() {
   const [feedbackText, setFeedbackText] = useState('');
   const [rating, setRating] = useState(0);
   const [warning, setWarning] = useState(false);
-  const [showPopup ,setShowPopup] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
 
   const mentee_email = localStorage.getItem('email');
 
@@ -72,50 +72,37 @@ function NavMentor() {
 
         <main className="p-6 overflow-y-auto bg-gray-100 flex-1 flex justify-center lg:items-center flex-col">
           {mentor_details.length === 0 && (
-            <p className="text-[#5F6388] text-lg">
-              No mentorship history found.
-            </p>
+            <p className="text-[#5F6388] text-lg">No mentorship history found.</p>
           )}
-                    {showPopup &&
-                    <div className="fixed top-0 left-0 w-full h-full bg-[rgba(0,0,0,0.5)] flex justify-center items-center z-50" onClick={() => setShowPopup(false)}>
-                        <div className="bg-white rounded-lg p-6 lg:w-1/3 w-full mx-5 lg:mx-0" onClick={(e) => e.stopPropagation()}>
-                            <h2 className="text-2xl font-semibold mb-4">Venue Details</h2>
-                            <p><strong>Booking Date:</strong> {mentorBooked_slot[0].booking_date}</p>
-                            <p><strong>Start Time:</strong> {mentorBooked_slot[0].start_time}</p>
-                            <p><strong>End Time:</strong> {mentorBooked_slot[0].end_time}</p>
-                            <p><strong>Level:</strong> {mentorBooked_slot[0].level}</p>
-                            <p><strong>Venue:</strong> {mentorBooked_slot[0].slot_venue}</p>
-                            <button className="mt-4 w-full bg-[#7D53F6] text-white py-2 rounded hover:cursor-pointer" onClick={() => setShowPopup(false)}>Close</button>
-                        </div>
-                        </div>
-                    }
+
+          {showPopup && (
+            <div className="fixed top-0 left-0 w-full h-full bg-[rgba(0,0,0,0.5)] flex justify-center items-center z-50" onClick={() => setShowPopup(false)}>
+              <div className="bg-white rounded-lg p-6 lg:w-1/3 w-full mx-5 lg:mx-0" onClick={(e) => e.stopPropagation()}>
+                <h2 className="text-2xl font-semibold mb-4">Venue Details</h2>
+                <p><strong>Booking Date:</strong> {mentorBooked_slot[0]?.booking_date}</p>
+                <p><strong>Start Time:</strong> {mentorBooked_slot[0]?.start_time}</p>
+                <p><strong>End Time:</strong> {mentorBooked_slot[0]?.end_time}</p>
+                <p><strong>Level:</strong> {mentorBooked_slot[0]?.level}</p>
+                <p><strong>Venue:</strong> {mentorBooked_slot[0]?.slot_venue}</p>
+                <button className="mt-4 w-full bg-[#7D53F6] text-white py-2 rounded hover:cursor-pointer" onClick={() => setShowPopup(false)}>Close</button>
+              </div>
+            </div>
+          )}
+
           {mentor_details.map((data, id) => (
-            <div
-              key={id}
-              className="bg-white rounded-xl shadow-md p-6 w-full max-w-md mx-auto mb-6"
-            >
+            <div key={id} className="bg-white rounded-xl shadow-md p-6 w-full max-w-md mx-auto mb-6">
               <div className="flex flex-col sm:flex-row sm:items-center">
-                <img
-                  src={userPS}
-                  alt="Mentor"
-                  className="w-20 h-20 rounded-full border border-gray-300 shadow-sm mx-auto sm:mx-0"
-                />
+                <img src={userPS} alt="Mentor" className="w-20 h-20 rounded-full border border-gray-300 shadow-sm mx-auto sm:mx-0" />
                 <div className="sm:ml-5 mt-4 sm:mt-0 text-center sm:text-left">
-                  <h3 className="text-2xl font-bold text-gray-800">
-                    {data.mentor_name}
-                  </h3>
+                  <h3 className="text-2xl font-bold text-gray-800">{data.mentor_name}</h3>
                   <p className="text-sm text-gray-600">{data.mentor_email}</p>
                   <div className="mt-3 text-sm text-gray-700">
                     <p className="font-semibold">Duration of Mentorship:</p>
-                    <p className="text-gray-600">
-                      {data.start_date} to {data.end_date}
-                    </p>
+                    <p className="text-gray-600">{data.start_date} to {data.end_date}</p>
                   </div>
                   <p className="text-sm mt-2 text-gray-700">
                     <span className="font-semibold">Skill:</span>{" "}
-                    <span className="text-indigo-600 font-medium">
-                      {data.language_name}
-                    </span>{" "}
+                    <span className="text-indigo-600 font-medium">{data.language_name}</span>{" "}
                     | <span className="font-semibold">Level:</span>{" "}
                     <span className="font-medium">{data.mentor_level}</span>
                   </p>
@@ -130,9 +117,7 @@ function NavMentor() {
                       : "bg-red-100 text-red-700"
                   }`}
                 >
-                  {data.status === "ongoing"
-                    ? "Mentorship: Ongoing"
-                    : "Mentorship: Ended"}
+                  {data.status === "ongoing" ? "Mentorship: Ongoing" : "Mentorship: Ended"}
                 </span>
 
                 <span className="flex items-center space-x-2">
@@ -153,6 +138,7 @@ function NavMentor() {
                       : "Ongoing"}
                   </span>
                 </span>
+
                 {mentorBooked_slot[0]?.level_cleared === "ongoing" && (
                   <p
                     className="text-gray-700 hover:underline mt-3 hover:cursor-pointer"
@@ -163,7 +149,6 @@ function NavMentor() {
                 )}
               </div>
 
-              {/* Always render feedback button for testing */}
               {data.menteef === "yes" && (
                 <div className="mt-5">
                   <button
@@ -199,22 +184,13 @@ function NavMentor() {
               >
                 <h1 className="text-xl font-medium pt-2 pb-4">Feedback</h1>
                 <p className="text-[#727272] text-lg">
-                  Mentor Email:{" "}
-                  <span className="text-black pl-2">
-                    {selectedVenue.mentor_email}
-                  </span>
+                  Mentor Email: <span className="text-black pl-2">{selectedVenue.mentor_email}</span>
                 </p>
                 <p className="text-[#727272] text-lg">
-                  Mentee Email:{" "}
-                  <span className="text-black pl-2">
-                    {selectedVenue.mentee_email}
-                  </span>
+                  Mentee Email: <span className="text-black pl-2">{selectedVenue.mentee_email}</span>
                 </p>
                 <p className="text-[#727272] text-lg">
-                  Skill:{" "}
-                  <span className="text-black pl-2">
-                    {selectedVenue.language}
-                  </span>
+                  Skill: <span className="text-black pl-2">{selectedVenue.language}</span>
                 </p>
 
                 <div className="mt-3">
