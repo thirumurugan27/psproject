@@ -17,21 +17,34 @@ function Courses() {
   useEffect(() => {
     async function GetAllSkill() {
       try {
+        const token = localStorage.getItem("token");
         const response = await axios.get(
-          `http://localhost:5000/student/levels/${localStorage.getItem("email")}`
+          `http://localhost:5000/student/levels/${localStorage.getItem(
+            "email"
+          )}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
-        console.log("students : ", response.data)
+        console.log("students : ", response.data);
         setCourses(response.data.levels);
         setMentor(response.data.mentor);
         setMentee(response.data.mentee);
         setMentorReq(response.data.mentorrequest);
         setMenteeReq(response.data.menteerequest);
       } catch (err) {
-        console.error(err);
+        console.error(
+          "Error fetching skill data:",
+          err.response?.data || err.message
+        );
       }
     }
+
     GetAllSkill();
   }, []);
+  
   console.log("mentee req: ",[menteeReq[0]])
   return (
     <div className="flex h-screen w-full">
@@ -51,7 +64,7 @@ function Courses() {
     mentorReq.length
       ? mentorReq
       : menteeReq.length
-      ? (menteeReq[0] ? [menteeReq[0]] : []) // <-- only first item of menteeReq
+      ? (menteeReq[0] ? [menteeReq[0]] : []) 
       : mentor.length
       ? mentor
       : mentee.length

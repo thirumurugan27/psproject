@@ -8,51 +8,97 @@ function Mentee_Request() {
     const [menteeList , setMenteeList] = useState([]);
     const [showFeedBack ,setShowFeedBack] = useState(false);
     const [id,setId] = useState(null)
-    useEffect(()=>{
-        async function GetMentee_Req() {
-        try{
-            const response = await axios.get(`http://localhost:5000/mentor/mentees-requests/${localStorage.getItem('email')}`);
-            console.log('mentee request (in mentor page): ',response.data);
-            setMenteeList(response.data.requests);
-        }
-        catch(err)
-        {console.log(err)}
-        }
-        GetMentee_Req();
-    },[])
-    function HandlePopup(id){
-        setShowFeedBack(true);
-        setId(id);
-        console.log('id: ',id)
-    }
-
-        async function HandleAccept(id) {
+    useEffect(() => {
+      async function GetMentee_Req() {
         try {
-            const postResponse = await axios.post('http://localhost:5000/mentor/update-request', {id:id,status:'accepted'});
-            console.log('POST response:', postResponse.data);
+          const token = localStorage.getItem("token");
+          const email = localStorage.getItem("email");
 
-            await new Promise((resolve) => setTimeout(resolve, 200));
+          const response = await axios.get(
+            `http://localhost:5000/mentor/mentees-requests/${email}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
 
-            
-            const deleteResponse = await axios.delete('http://localhost:5000/mentor/delete');
-            console.log('DELETE response:', deleteResponse.data);
-            window.location.reload();
-        } catch (error) {
-            console.error('Error in handleSubmit:', error);
+          console.log("mentee request (in mentor page): ", response.data);
+          setMenteeList(response.data.requests);
+        } catch (err) {
+          console.error(
+            "Error fetching mentee requests:",
+            err.response?.data || err.message
+          );
         }
-        }
+      }
 
+      GetMentee_Req();
+    }, []);
 
-    
-    async function PostDecline(id) {
-        try{
-            const response = await axios.post("http://localhost:5000/mentor/update-request",{id:id,status:'rejected'});
-            console.log("reject post: ",response.data);
-            window.location.reload();
-        }
-        catch(err)
-        {console.log(err)}
+    function HandlePopup(id) {
+      setShowFeedBack(true);
+      setId(id);
+      console.log("id: ", id);
     }
+
+    async function HandleAccept(id) {
+      try {
+        const token = localStorage.getItem("token");
+
+        const postResponse = await axios.post(
+          "http://localhost:5000/mentor/update-request",
+          {id, status: "accepted"},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        console.log("POST response:", postResponse.data);
+
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
+        const deleteResponse = await axios.delete(
+          "http://localhost:5000/mentor/delete",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        console.log("DELETE response:", deleteResponse.data);
+
+        window.location.reload();
+      } catch (error) {
+        console.error(
+          "Error in handleSubmit:",
+          error.response?.data || error.message
+        );
+      }
+    }
+
+    async function PostDecline(id) {
+      try {
+        const token = localStorage.getItem("token");
+
+        const response = await axios.post(
+          "http://localhost:5000/mentor/update-request",
+          {id, status: "rejected"},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        console.log("reject post: ", response.data);
+        window.location.reload();
+      } catch (err) {
+        console.error("Error in decline:", err.response?.data || err.message);
+      }
+    }
+    
 
 return (
         <div className="flex h-screen w-full">

@@ -176,6 +176,4 @@ function runExpireFunctions() {
 
 
 
-
-// Export the function so it can be used in other files
 module.exports = { runExpireFunctions };

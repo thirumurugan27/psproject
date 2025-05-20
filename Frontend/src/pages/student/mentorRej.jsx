@@ -14,63 +14,94 @@ function Mentor_Request() {
 
     // Fetch avg star for a specific mentor
     async function GetAvgStar(email, language) {
-        try {
-            const response = await axios.get(`http://localhost:5000/mentee/avg-rating/${email}/${language}`);
-            setAvgStars((prev) => ({
-                ...prev,
-                [`${email}-${language}`]: response.data,
-            }));
-        } catch (err) {
-            console.log(`Error fetching avg star for ${email}-${language}:`, err);
-        }
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `http://localhost:5000/mentee/avg-rating/${email}/${language}`,
+          {
+            headers: {Authorization: `Bearer ${token}`},
+          }
+        );
+        setAvgStars((prev) => ({
+          ...prev,
+          [`${email}-${language}`]: response.data,
+        }));
+      } catch (err) {
+        console.log(`Error fetching avg star for ${email}-${language}:`, err);
+      }
     }
 
-    // Fetch available mentors
+    // Fetch available mentors on mount
     useEffect(() => {
-        async function GetAvailableMentors() {
-            try {
-                const email = localStorage.getItem('email');
-                const language = localStorage.getItem('language_name');
-                const response = await axios.get(`http://localhost:5000/mentee/mentors/${email}/${language}`);
-                setMentorList(response.data);
-                console.log("mentor list: ",response.data)
-            } catch (err) {
-                console.log('Error fetching mentors:', err);
+      async function GetAvailableMentors() {
+        try {
+          const token = localStorage.getItem("token");
+          const email = localStorage.getItem("email");
+          const language = localStorage.getItem("language_name");
+          const response = await axios.get(
+            `http://localhost:5000/mentee/mentors/${email}/${language}`,
+            {
+              headers: {Authorization: `Bearer ${token}`},
             }
+          );
+          setMentorList(response.data);
+          console.log("mentor list: ", response.data);
+        } catch (err) {
+          console.log("Error fetching mentors:", err);
         }
-        GetAvailableMentors();
+      }
+      GetAvailableMentors();
     }, []);
 
-    // Fetch average stars once mentors are loaded
+    // Fetch average stars once mentorList changes
     useEffect(() => {
-        mentorList.forEach(({ mentor_email, language_name }) => {
-            GetAvgStar(mentor_email, language_name);
-        });
+      if (mentorList.length === 0) return;
+      mentorList.forEach(({mentor_email, language_name}) => {
+        GetAvgStar(mentor_email, language_name);
+      });
     }, [mentorList]);
 
-    // Fetch reviews and show popup
+    // Fetch mentor feedback and show popup
     async function GetMentee_review(email, language) {
-        try {
-            const response = await axios.get(`http://localhost:5000/faculty/mentor-feedback/${email}/${language}`);
-            SetFiltered_data(response.data);
-            setMentor_email(email);
-            setMentor_language(language);
-            setPopup(true);
-        } catch (err) {
-            console.log(err);
-        }
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `http://localhost:5000/faculty/mentor-feedback/${email}/${language}`,
+          {
+            headers: {Authorization: `Bearer ${token}`},
+          }
+        );
+        SetFiltered_data(response.data);
+        setMentor_email(email);
+        setMentor_language(language);
+        setPopup(true);
+      } catch (err) {
+        console.log(err);
+      }
     }
 
-    async function PostMentee_req_to_mentor(mentor_email , language){
-        try{
-            const response = await axios.post('http://localhost:5000/mentee/request',{ student_email:localStorage.getItem('email') , mentor_email:mentor_email , language_name:language });
-            console.log('mentor request sent status...',response.data);
-            window.location.reload();
-        }
-        catch(err){
-            console.log(err);
-        }
+    // Send mentor request
+    async function PostMentee_req_to_mentor(mentor_email, language) {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.post(
+          "http://localhost:5000/mentee/request",
+          {
+            student_email: localStorage.getItem("email"),
+            mentor_email,
+            language_name: language,
+          },
+          {
+            headers: {Authorization: `Bearer ${token}`},
+          }
+        );
+        console.log("mentor request sent status...", response.data);
+        window.location.reload();
+      } catch (err) {
+        console.log(err);
+      }
     }
+    
     return (
         <div className="flex h-screen w-full">
             <Navbar />

@@ -2,9 +2,10 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db");
 const moment = require('moment');
+const verifyToken = require("../middlewares/verifyToken");
 
 // Student can send request to faculty for mentorship
-router.post("/send-request", (req, res) => {
+router.post("/send-request",verifyToken, (req, res) => {
   const { student_email, language_name } = req.body;
 
   const query = `
@@ -42,7 +43,7 @@ router.post("/send-request", (req, res) => {
 
 //mentor request changed by faculty
 //To see the ststus of request
-router.get("/request-status/:email", (req, res) => {
+router.get("/request-status/:email",verifyToken, (req, res) => {
   const student_email = req.params.email; // 🔥 FIXED
 
   const sql = `
@@ -81,7 +82,7 @@ router.get("/request-status/:email", (req, res) => {
 });
 
 //put to change views to yes after mentor jejection
-router.put('/view/:id', (req, res) => {
+router.put('/view/:id',verifyToken, (req, res) => {
   const requestId = req.params.id;
 
   const sql = `UPDATE mentor_requests SET view = 'yes' WHERE id = ?`;
@@ -103,7 +104,7 @@ router.put('/view/:id', (req, res) => {
 
 // To see the mentee requests for a mentor
 // GET /api/mentor/requests/:mentor_email
-router.get("/mentees-requests/:mentor_email", (req, res) => {
+router.get("/mentees-requests/:mentor_email", verifyToken, (req, res) => {
   const { mentor_email } = req.params;
 
   const query = `
@@ -155,7 +156,7 @@ router.get("/mentees-requests/:mentor_email", (req, res) => {
 
 
 //To accept and reject the request(Note use DELETE method to delete the request NEXT to This code)
-router.post("/update-request", (req, res) => {
+router.post("/update-request", verifyToken, (req, res) => {
   const { id, status, rejection_reason } = req.body;
 
   if (!id || !status) {
@@ -297,7 +298,7 @@ router.post("/update-request", (req, res) => {
 
 
 //after accepting the request, delete the request
-router.delete("/delete", (req, res) => {
+router.delete("/delete", verifyToken, (req, res) => {
   const query = `DELETE FROM mentee_requests WHERE status = 'delete'`;
 
   db.query(query, (err, result) => {
@@ -313,7 +314,7 @@ router.delete("/delete", (req, res) => {
 
 
 //to see the all mentees
-router.get("/menteeslist/:mentor_email", (req, res) => {
+router.get("/menteeslist/:mentor_email", verifyToken, (req, res) => {
   const { mentor_email } = req.params;
 
   const sql = `
@@ -376,7 +377,7 @@ function formatDate(dateString) {
 
 
 //💻🧑‍💻SLOT book to menteee
-router.post('/slot', (req, res) => {
+router.post('/slot', verifyToken, (req, res) => {
   const { mentor_email, mentee_email, language_name, start_time } = req.body;
 
   // Get current date and determine booking date
@@ -489,7 +490,7 @@ router.post('/slot', (req, res) => {
 
 
 //⭐⭐⭐⭐⭐ Feedback and Rating to mentee
-router.post('/feedback', (req, res) => {
+router.post('/feedback', verifyToken, (req, res) => {
   const { mentee_email, mentor_email, language_name, rating, feedback } = req.body;
 
   if (!mentee_email || !mentor_email || !language_name || !rating || !feedback) {
@@ -531,7 +532,7 @@ router.post('/feedback', (req, res) => {
 
 
 // To get the feedback of a mentee given by previous mentor
-router.get('/feedback/:mentee_email/:language', (req, res) => {
+router.get('/feedback/:mentee_email/:language', verifyToken, (req, res) => {
   const menteeEmail = req.params.mentee_email;
   const language = req.params.language;
 
@@ -565,7 +566,7 @@ router.get('/feedback/:mentee_email/:language', (req, res) => {
 
 
 // to get level cleared by mentee
-router.get('/mentorshiprp/:mentorEmail', (req, res) => {
+router.get('/mentorshiprp/:mentorEmail', verifyToken, (req, res) => {
   const mentorEmail = req.params.mentorEmail;
 
   const query = `
@@ -595,7 +596,7 @@ router.get('/mentorshiprp/:mentorEmail', (req, res) => {
 });
 
 
-router.get("/slots/:email", (req, res) => {
+router.get("/slots/:email", verifyToken, (req, res) => {
   const mentorEmail = req.params.email;
 
   const sql = `

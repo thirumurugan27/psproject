@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../db");
+const jwt = require('jsonwebtoken');
+const secretKey = 'your-secret-key';
 
 router.post("/login", (req, res) => {
   const { email, password } = req.body;
@@ -19,8 +21,16 @@ router.post("/login", (req, res) => {
       if (user.password !== password)
         return res.status(401).json({ message: "Invalid password" });
 
+      const token = jwt.sign(
+        { email: user.email, role: user.role },
+        secretKey,
+        { expiresIn: "1h" }
+      );
+  
+
       res.json({
         message: "Login successful",
+        token,
         name: user.name,
         email: user.email,
         role: user.role,

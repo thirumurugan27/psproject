@@ -21,8 +21,9 @@ try {
     });
 
     if (response.data) {
-    const { role, id, name, email } = response.data;
+    const { role, id, name, email,token } = response.data;
 
+    localStorage.setItem("token", token);
     localStorage.setItem("role", role);
     localStorage.setItem("student_id", id);
     localStorage.setItem("name", name);

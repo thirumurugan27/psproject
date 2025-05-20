@@ -7,28 +7,57 @@ const [profileData , setProfileData] = useState([]);
 const [menteeContribution ,setMenteeContribution] = useState([]);
 const [contributionPopup , setContributionPopup] = useState(false);
 
-useEffect(()=>{
-    async function GetRP() {
-        try{
-            const response = await axios.get(`http://localhost:5000/student/rp/${localStorage.getItem('email')}`)
-            console.log("profile:",response.data);
-            setProfileData(response.data);
+useEffect(() => {
+  async function GetRP() {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.get(
+        `http://localhost:5000/student/rp/${localStorage.getItem("email")}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-        catch(err)
-        {console.log(err);}
+      );
+      console.log("Profile:", response.data);
+      setProfileData(response.data);
+    } catch (err) {
+      console.error(
+        "Error fetching profile data:",
+        err.response?.data || err.message
+      );
     }
-    async function Get_mentee_Contribution(params) {
-        try{
-            const response = await axios.get(`http://localhost:5000/mentor/mentorshiprp/${localStorage.getItem('email')}`)
-            console.log('Mentee contribution: ',response.data);
-            setMenteeContribution(response.data.mentees);
+  }
+
+  async function Get_mentee_Contribution() {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.get(
+        `http://localhost:5000/mentor/mentorshiprp/${localStorage.getItem(
+          "email"
+        )}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-        catch(err)
-        {console.log(err)}
+      );
+      console.log("Mentee contribution: ", response.data);
+      setMenteeContribution(response.data.mentees);
+    } catch (err) {
+      console.error(
+        "Error fetching mentee contribution:",
+        err.response?.data || err.message
+      );
     }
-    GetRP();
-    Get_mentee_Contribution();
-},[])
+  }
+
+  GetRP();
+  Get_mentee_Contribution();
+}, []);
+  
 return (
 <div className='flex w-full h-screen bg-gray-100'>
     <Navbar />

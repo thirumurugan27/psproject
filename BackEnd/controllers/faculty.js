@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../db");
+const verifyToken = require("../middlewares/verifyToken");
 
-router.get("/requests", (req, res) => {
+router.get("/requests",verifyToken,(req, res) => {
   const sql = `
     SELECT 
       mr.id AS request_id,
@@ -39,7 +40,7 @@ router.get("/requests", (req, res) => {
 
 
 //faculty can approve or reject the request
-router.put("/update-status", (req, res) => {
+router.put("/update-status",verifyToken, (req, res) => {
   const { request_id, status, rejection_reason } = req.body;
 
   if (!request_id || !["approved", "rejected"].includes(status)) {
@@ -106,7 +107,7 @@ router.put("/update-status", (req, res) => {
 
 
 //to see mentor feedback and rating given by mentee(individual)
-router.get('/mentor-feedback/:mentor_email/:language', (req, res) => {
+router.get('/mentor-feedback/:mentor_email/:language',verifyToken, (req, res) => {
   const mentorEmail = req.params.mentor_email;
   const language = req.params.language;
 

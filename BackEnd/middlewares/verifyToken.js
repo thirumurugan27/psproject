@@ -1,20 +1,25 @@
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
+const secretKey = 'your-secret-key';
 
-function verifyToken(req, res, next) {
-    const token = req.cookies.auth_token || req.headers["authorization"]?.split(" ")[1];
+const verifyToken = (req, res, next) => {
+    const token = req.headers['authorization']?.split(' ')[1];
+
+    console.log("Token from request header:", token);
 
     if (!token) {
-        return res.status(403).json({ message: "Access denied, no token provided." });
+        return res.status(403).json({ message: 'No token provided' });
     }
 
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    jwt.verify(token, secretKey, (err, decoded) => {
         if (err) {
-            return res.status(401).json({ message: "Invalid or expired token" });
+            return res.status(401).json({ message: 'Invalid or expired token' });
         }
 
-        req.user = decoded;  // Attach decoded payload (user info) to the request object
+        console.log("Decoded token:", decoded);
+
+        req.user = decoded;
         next();
     });
-}
+};
 
 module.exports = verifyToken;

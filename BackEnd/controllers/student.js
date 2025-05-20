@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../db");
+const verifyToken = require("../middlewares/verifyToken");
 
 //get student levels and mentor/mentee details
-router.get("/levels/:email", (req, res) => {
+router.get("/levels/:email",verifyToken, (req, res) => {
   const email = req.params.email;
 
   const result = {
@@ -278,7 +279,7 @@ router.get("/levels/:email", (req, res) => {
 // Route to get attempts with levels (level1, level2, ... level7) for a given student and language
 
 
-router.get('/getattempts', (req, res) => {
+router.get('/getattempts', verifyToken, (req, res) => {
   let { email, language } = req.query;
 
   if (!email || !language) {
@@ -337,7 +338,7 @@ router.get('/getattempts', (req, res) => {
 
 
 // 🪙🎖️🏆To GET RP 
-router.get('/rp/:email', (req, res) => {
+router.get('/rp/:email', verifyToken, (req, res) => {
   const studentEmail = req.params.email;
 
   if (!studentEmail) {
@@ -475,7 +476,5 @@ router.put('/slot-level-update', (req, res) => {
     });
   });
 });
-
-
 
 module.exports = router;

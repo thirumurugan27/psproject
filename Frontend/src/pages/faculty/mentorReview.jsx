@@ -10,22 +10,35 @@ function MentorReview() {
     const navigate = useNavigate();
     const [filtered_data,SetFiltered_data] = useState([]);
     console.log(localStorage.getItem('email') , localStorage.getItem('mentor_language'))
-    useEffect(()=>{
-        async function GetMentee_review()
-    {
-        try{
-            const response = await axios.get(`http://localhost:5000/faculty/mentor-feedback/${localStorage.getItem('mentor_email')}/${localStorage.getItem('mentor_language')}`);
-            console.log('mentee review details: ',response.data);
-            SetFiltered_data(response.data);
-        }
-        catch(err)
-        {
-            console.log(err);
-        }
+    useEffect(() => {
+      async function GetMentee_review() {
+        try {
+          const token = localStorage.getItem("token");
+          const mentorEmail = localStorage.getItem("mentor_email");
+          const mentorLanguage = localStorage.getItem("mentor_language");
 
-    }
-    GetMentee_review();
-    },[])
+          const response = await axios.get(
+            `http://localhost:5000/faculty/mentor-feedback/${mentorEmail}/${mentorLanguage}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          console.log("mentee review details: ", response.data);
+          SetFiltered_data(response.data);
+        } catch (err) {
+          console.error(
+            "Error fetching mentee reviews:",
+            err.response?.data || err.message
+          );
+        }
+      }
+
+      GetMentee_review();
+    }, []);
+    
 
 
 return (

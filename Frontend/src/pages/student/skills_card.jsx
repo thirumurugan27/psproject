@@ -18,42 +18,69 @@ function SkillsCard({ course }) {
 
   const HandlePostMentor = async (email, skill) => {
     try {
-      const response = await axios.post('http://localhost:5000/mentor/send-request', {
-        student_email: email,
-        language_name: skill,
-      });
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        "http://localhost:5000/mentor/send-request",
+        {
+          student_email: email,
+          language_name: skill,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       console.log("Mentor request posted: ", response.data);
       window.location.reload();
     } catch (err) {
-      console.log(err);
+      console.log("Mentor request error:", err.response?.data || err.message);
     }
   };
 
   const PutMentorReject = async () => {
     try {
-      const response = await axios.put(`http://localhost:5000/mentor/view/${mentor?.id}`);
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `http://localhost:5000/mentor/view/${mentor?.id}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       console.log("Rejection agreed: ", response.data);
       window.location.reload();
     } catch (err) {
-      console.log(err);
+      console.log("Reject error:", err.response?.data || err.message);
     }
   };
 
   useEffect(() => {
     const GetAllSkill = async () => {
       try {
+        const token = localStorage.getItem("token");
         const response = await axios.get(
-          `http://localhost:5000/student/levels/${localStorage.getItem('email')}`
+          `http://localhost:5000/student/levels/${localStorage.getItem(
+            "email"
+          )}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
         console.log("Skill Card: ", response.data.mentorrequest);
         setMentor(response.data.mentorrequest?.[0]);
       } catch (err) {
-        console.error(err);
+        console.error("Get skills error:", err.response?.data || err.message);
       }
     };
+
     GetAllSkill();
   }, []);
-
+  
   const imageSrc =
     course.language_name === 'C' ? c :
     course.language_name === 'C++' ? c_class :

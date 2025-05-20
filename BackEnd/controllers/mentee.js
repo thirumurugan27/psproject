@@ -1,11 +1,14 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../db");
+const verifyToken = require("../middlewares/verifyToken");
 
 //👩‍🏫👨‍🏫available mentors for a student 
-router.get("/mentors/:student_email/:language_name", (req, res) => {
+router.get("/mentors/:student_email/:language_name", verifyToken, (req, res) => {
   const student_email = req.params.student_email;
   const language_name = req.params.language_name;
+
+  console.log("Received params:", student_email, language_name);
 
   const checkSql = `
     SELECT student_email AS email FROM mentors WHERE student_email = ?
@@ -16,14 +19,20 @@ router.get("/mentors/:student_email/:language_name", (req, res) => {
   `;
 
   db.query(checkSql, [student_email, student_email, student_email], (err0, existing) => {
-    if (err0) return res.status(500).json({ error: "Check error" });
+    if (err0) {
+      console.error("Error in checkSql:", err0);
+      return res.status(500).json({ error: "Check error" });
+    }
 
     if (existing.length > 0) {
       return res.status(200).json([]); // Already a mentor/mentee or has pending request
     }
 
     db.query("SELECT * FROM student_levels WHERE student_email = ?", [student_email], (err1, levels) => {
-      if (err1) return res.status(500).json({ error: "Level fetch error" });
+      if (err1) {
+        console.error("Error fetching levels:", err1);
+        return res.status(500).json({ error: "Level fetch error" });
+      }
 
       const studentLevels = {};
       levels.forEach((row) => {
@@ -53,11 +62,14 @@ router.get("/mentors/:student_email/:language_name", (req, res) => {
               AND language_name = ? 
               AND status IN ('pending', 'rejected')
           )
-        GROUP BY m.student_email, m.language_name
+        GROUP BY m.student_email, m.language_name, u.name, sl.level
       `;
 
       db.query(sql, [language_name, student_email, language_name], (err2, mentors) => {
-        if (err2) return res.status(500).json({ error: "Mentor fetch error" });
+        if (err2) {
+          console.error("Error fetching mentors:", err2);
+          return res.status(500).json({ error: "Mentor fetch error" });
+        }
 
         const studentLevel = studentLevels[language_name] || 0;
 
@@ -82,9 +94,8 @@ router.get("/mentors/:student_email/:language_name", (req, res) => {
 });
 
 
-
-// 📝📚👩‍🏫👨‍🏫POST mentee request to mentor
-router.post("/request", (req, res) => {
+//📝📚👩‍🏫👨‍🏫POST mentee request to mentor
+router.post("/request", verifyToken, (req, res) => {
   const { student_email, mentor_email, language_name } = req.body;
 
   if (!student_email || !mentor_email || !language_name) {
@@ -114,7 +125,7 @@ router.post("/request", (req, res) => {
 
 
 //🔍📋to get mentor detail
-router.get("/mentor-detail/:email", (req, res) => {
+router.get("/mentor-detail/:email", verifyToken, (req, res) => {
   const menteeEmail = req.params.email;
   const sql = `
     SELECT 
@@ -161,7 +172,7 @@ router.get("/mentor-detail/:email", (req, res) => {
 
 
 // AVG(⭐) .To get the AVERAGE rating of a mentor
-router.get('/avg-rating/:mentor_email/:language', (req, res) => {
+router.get('/avg-rating/:mentor_email/:language', verifyToken, (req, res) => {
   const mentorEmail = req.params.mentor_email;
   const language = req.params.language;
 
@@ -200,7 +211,7 @@ function formatDate(dateString) {
 
 
 //Booked slot by mentor
-router.get("/slot/:mentee_email", (req, res) => {
+router.get("/slot/:mentee_email", verifyToken, (req, res) => {
   const mentee_email = req.params.mentee_email;
 
   const sql = `
@@ -218,7 +229,7 @@ router.get("/slot/:mentee_email", (req, res) => {
 
 
 //⭐⭐⭐⭐⭐ Feedback and Rating to mentor
-router.post('/feedback', (req, res) => {
+router.post('/feedback', verifyToken, (req, res) => {
   const { mentor_email, mentee_email, language_name, rating, feedback } = req.body;
 
   if (!mentor_email || !mentee_email || !language_name || !rating || !feedback) {

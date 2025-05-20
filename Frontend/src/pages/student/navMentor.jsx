@@ -18,33 +18,80 @@ function NavMentor() {
 
   useEffect(() => {
     async function GetMentorDetail() {
-      const response = await axios.get(`http://localhost:5000/mentee/mentor-detail/${mentee_email}`);
-      SetMentor_details(response.data);
-      console.log('Mentor details:', response.data);
+      try {
+        const token = localStorage.getItem("token");
+
+        const response = await axios.get(
+          `http://localhost:5000/mentee/mentor-detail/${mentee_email}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        SetMentor_details(response.data);
+        console.log("Mentor details:", response.data);
+      } catch (err) {
+        console.error(
+          "Error fetching mentor details:",
+          err.response?.data || err.message
+        );
+      }
     }
 
     async function GetMenteeSlot() {
-      const response = await axios.get(`http://localhost:5000/mentee/slot/${mentee_email}`);
-      setMentorBooked_slot(response.data);
-      console.log('Mentee slot:', response.data);
+      try {
+        const token = localStorage.getItem("token");
+
+        const response = await axios.get(
+          `http://localhost:5000/mentee/slot/${mentee_email}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        console.log("slot get:",response.data);
+        
+        setMentorBooked_slot(response.data);
+        console.log("Mentee slot:", response.data);
+      } catch (err) {
+        console.error(
+          "Error fetching slot:",
+          err.response?.data || err.message
+        );
+      }
     }
 
     GetMentorDetail();
     GetMenteeSlot();
   }, [mentee_email]);
-
+  
   async function PostFeedback_to_mentor(payload) {
     try {
-      const response = await axios.post(`http://localhost:5000/mentee/feedback`, payload);
-      console.log('Feedback submitted:', response.data);
+      const token = localStorage.getItem("token");
+
+      const response = await axios.post(
+        `http://localhost:5000/mentee/feedback`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("Feedback submitted:", response.data);
       setShowFeedbackPopup(false);
-      setFeedbackText('');
+      setFeedbackText("");
       setRating(0);
       window.location.reload();
     } catch (err) {
-      console.error(err);
+      console.error("Feedback error:", err.response?.data || err.message);
     }
   }
+  
 
   const handleSubmitFeedback = () => {
     if (feedbackText.trim() === '' || rating === 0) {
@@ -89,8 +136,10 @@ function NavMentor() {
               >
                 <h2 className="text-2xl font-semibold mb-4">Venue Details</h2>
                 <p>
-                  <strong>Booking Date:</strong>{" "}
-                  {mentorBooked_slot[0]?.booking_date}
+                  <strong>Booking Date: </strong>
+                  {new Date(mentorBooked_slot[0]?.date).toLocaleDateString(
+                    "en-GB"
+                  )}
                 </p>
                 <p>
                   <strong>Start Time:</strong>{" "}
@@ -194,8 +243,9 @@ function NavMentor() {
                 )}
               </div>
 
-              {(mentor_details[0]?.menteef==='no' &&( mentorBooked_slot[0]?.level_cleared === "yes" || mentorBooked_slot[0]?.level_cleared === "no")) &&
-                (
+              {mentor_details[0]?.menteef === "no" &&
+                (mentorBooked_slot[0]?.level_cleared === "yes" ||
+                  mentorBooked_slot[0]?.level_cleared === "no") && (
                   <div className="mt-5">
                     <button
                       onClick={() => {
@@ -212,14 +262,11 @@ function NavMentor() {
                     </button>
                   </div>
                 )}
-                {
-                  mentorBooked_slot[0]?.menteef==='yes' && 
-                  <span>
-                    <p className="text-gray-700 mt-3">
-                      Feedback given
-                    </p>
-                  </span>
-                }
+              {mentorBooked_slot[0]?.menteef === "yes" && (
+                <span>
+                  <p className="text-gray-700 mt-3">Feedback given</p>
+                </span>
+              )}
             </div>
           ))}
 
